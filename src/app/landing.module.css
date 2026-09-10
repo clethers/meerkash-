@@ -1,0 +1,292 @@
+.stage {
+  --paper: #eef2ee;
+  --ink: #10241c;
+  --copy: #3d4b43;
+  --brand: #15825a;
+  --brand-dark: #0c3f2d;
+  --receipt: #fbfbf8;
+  --rule: rgba(16, 36, 28, 0.16);
+  --gold: #c9973f;
+
+  position: relative;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: clamp(20px, 4vh, 32px) clamp(20px, 5vw, 56px) 0;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+}
+
+.brand img {
+  height: 68px;
+  width: auto;
+}
+
+.navActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.navLink {
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--ink);
+  transition: background-color 0.18s ease;
+}
+.navLink:hover { background: rgba(16, 36, 28, 0.06); }
+
+.navCta {
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--brand);
+  box-shadow: 0 4px 14px rgba(21, 130, 90, 0.28);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.navCta:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(21, 130, 90, 0.34); }
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 460px);
+  align-items: center;
+  gap: clamp(32px, 6vw, 72px);
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: clamp(48px, 9vh, 108px) clamp(20px, 5vw, 56px) clamp(56px, 9vh, 96px);
+}
+
+.slogan {
+  margin: 0 0 14px;
+  color: var(--brand-dark);
+  font-size: 14.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  animation: lineReveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.headline {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1.02;
+  font-size: clamp(34px, 5.6vw, 80px);
+  overflow-wrap: break-word;
+}
+
+.headline span {
+  display: block;
+  animation: lineReveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.headline span:nth-child(1) { animation-delay: 0.05s; }
+.headline span:nth-child(2) { animation-delay: 0.12s; }
+
+@keyframes lineReveal {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.lede {
+  margin: 28px 0 0;
+  max-width: 46ch;
+  color: var(--copy);
+  font-size: clamp(16px, 1.6vw, 19px);
+  line-height: 1.6;
+}
+
+.ctaRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.ctaPrimary {
+  padding: 13px 24px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  box-shadow: 0 6px 20px rgba(16, 36, 28, 0.24);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.ctaPrimary:hover { transform: translateY(-1px); box-shadow: 0 10px 26px rgba(16, 36, 28, 0.3); }
+
+.ctaSecondary {
+  padding: 13px 22px;
+  border-radius: 999px;
+  border: 1px solid var(--rule);
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 600;
+  transition: border-color 0.18s ease, background-color 0.18s ease;
+}
+.ctaSecondary:hover { background: rgba(16, 36, 28, 0.04); border-color: rgba(16, 36, 28, 0.3); }
+
+.receiptWrap {
+  position: relative;
+  justify-self: center;
+  width: 100%;
+  max-width: 340px;
+  filter: drop-shadow(0 18px 34px rgba(16, 36, 28, 0.22));
+  animation: receiptSettle 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+}
+
+@keyframes receiptSettle {
+  from { opacity: 0; transform: translateY(24px) rotate(0deg); }
+  to { opacity: 1; transform: translateY(0) rotate(-3deg); }
+}
+
+.receipt {
+  background: var(--receipt);
+  padding: 30px 26px 104px;
+  clip-path: polygon(
+    0% 0%, 100% 0%, 100% 94%,
+    96.2% 100%, 92.4% 94%, 88.6% 100%, 84.8% 94%, 81% 100%, 77.2% 94%, 73.4% 100%,
+    69.6% 94%, 65.8% 100%, 62% 94%, 58.2% 100%, 54.4% 94%, 50.6% 100%, 46.8% 94%,
+    43% 100%, 39.2% 94%, 35.4% 100%, 31.6% 94%, 27.8% 100%, 24% 94%, 20.2% 100%,
+    16.4% 94%, 12.6% 100%, 8.8% 94%, 5% 100%, 1.2% 94%, 0% 100%
+  );
+}
+
+.receiptTitle {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 20px;
+  letter-spacing: -0.01em;
+}
+
+.receiptDivider {
+  margin: 14px 0;
+  border: none;
+  border-top: 1.5px dashed var(--rule);
+}
+
+.receiptRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 15px;
+  color: var(--copy);
+}
+
+.receiptTotalRow {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 6px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 18px;
+  color: var(--brand-dark);
+}
+
+.stamp {
+  position: absolute;
+  right: 22px;
+  bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 96px;
+  height: 96px;
+  border: 3px solid var(--brand);
+  border-radius: 50%;
+  color: var(--brand);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  background: rgba(251, 251, 248, 0.6);
+  opacity: 0;
+  animation: stampDown 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.75s forwards;
+}
+
+.stamp svg { margin-top: 4px; }
+
+@keyframes stampDown {
+  0% { opacity: 0; transform: rotate(4deg) scale(1.8); }
+  100% { opacity: 0.92; transform: rotate(-11deg) scale(1); }
+}
+
+.features {
+  border-top: 1px solid var(--rule);
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: clamp(32px, 6vh, 56px) clamp(20px, 5vw, 56px) clamp(48px, 8vh, 80px);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(24px, 4vw, 48px);
+}
+
+.feature {
+  max-width: 34ch;
+}
+
+.featureDot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gold);
+  margin-bottom: 12px;
+}
+
+.featureTitle {
+  margin: 0 0 6px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 17px;
+  letter-spacing: -0.01em;
+}
+
+.featureBody {
+  margin: 0;
+  color: var(--copy);
+  font-size: 14.5px;
+  line-height: 1.55;
+}
+
+.footer {
+  border-top: 1px solid var(--rule);
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 20px clamp(20px, 5vw, 56px) clamp(28px, 5vh, 40px);
+  font-size: 13px;
+  color: var(--copy);
+}
+
+@media (max-width: 860px) {
+  .hero { grid-template-columns: 1fr; }
+  .receiptWrap { max-width: 300px; margin-top: 12px; }
+  .features { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slogan,
+  .headline span,
+  .receiptWrap,
+  .stamp {
+    animation: none !important;
+    opacity: 1;
+    transform: none;
+  }
+  .receiptWrap { transform: rotate(-3deg); }
+}

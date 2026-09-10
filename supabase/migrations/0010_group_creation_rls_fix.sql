@@ -1,0 +1,21 @@
+-- ============================================================================
+-- AbonoShare — fix a latent RLS bug in group creation
+--
+-- Found via actual browser testing (not caught by typecheck/build/unit
+-- tests): createGroup() inserts into `groups` with `.select('id').single()`,
+-- which requests RETURNING — Postgres evaluates the row's visibility under
+-- SELECT policies as part of that same INSERT statement. The only SELECT
+-- policy on `groups` is "members read their groups" (is_group_member(id)),
+-- which depends on a `group_members` row that doesn't exist yet — the
+-- owner's own membership row is inserted in a SEPARATE, later statement.
+-- So the INSERT succeeds but the RETURNING clause has nothing it's allowed
+-- to show, and PostgREST reports it as an RLS violation (42501) — the same
+-- self-referential-RETURNING class of bug documented in 0009_friends.sql,
+-- just across two related tables instead of one.
+--
+-- Fix: let a creator always read a group they created, independent of
+-- membership-row timing. Additive — Postgres OR's permissive policies for
+-- the same command, so the existing policy is untouched.
+-- ============================================================================
+create policy "creator reads their own new group"
+  on groups for select using (created_by = auth.uid());

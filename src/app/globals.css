@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  @apply bg-paper text-slate-900 antialiased;
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl border border-ink/15 bg-receipt shadow-sm;
+  }
+  .label {
+    @apply block text-sm font-medium text-slate-700;
+  }
+  .input {
+    @apply block w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-slate-900
+           placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-2
+           focus:ring-brand-500/20 disabled:bg-slate-100 disabled:text-slate-500;
+  }
+  .money-positive { @apply text-brand-600; }
+  .money-negative { @apply text-rose-600; }
+}
+
+/* Keep long tables and wide content inside their own scroller. */
+.scroll-x { @apply overflow-x-auto; }
