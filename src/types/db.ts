@@ -41,6 +41,7 @@ export interface Friendship {
 export interface Profile {
   id: string;
   display_name: string;
+  username: string | null;
   avatar_url: string | null;
   email: string | null;
   preferred_currency: CurrencyCode | null;

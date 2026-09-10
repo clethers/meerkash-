@@ -102,7 +102,7 @@ export function UsernameField({
           {message}
         </p>
       ) : (
-        <p className="mt-1 text-xs text-slate-500">This is how friends will find you.</p>
+        <p className="mt-1 text-xs text-slate-500">Your unique handle on Meerkash.</p>
       )}
     </div>
   );

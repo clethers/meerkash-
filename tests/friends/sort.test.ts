@@ -7,6 +7,7 @@ function friend(id: string, netCentavos: number): { profile: Profile; netCentavo
     profile: {
       id,
       display_name: id,
+      username: null,
       avatar_url: null,
       email: null,
       preferred_currency: null,
