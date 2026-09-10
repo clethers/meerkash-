@@ -2,11 +2,14 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useActionState, useEffect } from 'react';
+import { useActionState, useEffect, useState } from 'react';
 import { signInWithEmail, signInWithGoogle, signUpWithEmail } from '@/lib/actions/auth';
 import type { ActionResult } from '@/lib/actions/shared';
 import { Alert } from '@/components/ui/Alert';
 import { SubmitButton } from '@/components/ui/SubmitButton';
+import { PasswordField } from './PasswordField';
+import { UsernameField } from './UsernameField';
+import { suggestEmailCorrection } from '@/lib/signup/emailSuggest';
 
 function GoogleButton({ next }: { next: string }) {
   return (
@@ -76,6 +79,10 @@ export function LoginForm({ next }: { next: string }) {
 
 export function SignupForm({ next }: { next: string }) {
   const [state, action] = useActionState<ActionResult | null, FormData>(signUpWithEmail, null);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
+  const emailSuggestion = suggestEmailCorrection(email);
 
   return (
     <div className="space-y-4">
@@ -88,13 +95,32 @@ export function SignupForm({ next }: { next: string }) {
         </div>
         <div>
           <label className="label" htmlFor="email">Email</label>
-          <input id="email" name="email" type="email" autoComplete="email" required className="input mt-1.5" />
+          <input
+            id="email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            required
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            className="input mt-1.5"
+          />
+          {emailSuggestion ? (
+            <p className="mt-1 text-xs text-slate-500">
+              Did you mean{' '}
+              <button
+                type="button"
+                onClick={() => setEmail(emailSuggestion)}
+                className="font-medium text-brand-700 hover:underline"
+              >
+                {emailSuggestion}
+              </button>
+              ?
+            </p>
+          ) : null}
         </div>
-        <div>
-          <label className="label" htmlFor="password">Password</label>
-          <input id="password" name="password" type="password" autoComplete="new-password" required minLength={8} className="input mt-1.5" />
-          <p className="mt-1 text-xs text-slate-500">At least 8 characters.</p>
-        </div>
+        <UsernameField value={username} onChange={setUsername} />
+        <PasswordField value={password} onChange={setPassword} />
         {state?.error ? <Alert tone="error">{state.error}</Alert> : null}
         {state?.ok ? <Alert tone="success">{String(state.data?.message ?? 'Account created.')}</Alert> : null}
         <SubmitButton className="w-full" pendingLabel="Creating account…">Create account</SubmitButton>
