@@ -14,6 +14,30 @@ function siteOrigin() {
 
 const USERNAME_PATTERN = /^[a-z0-9_]{3,20}$/;
 
+type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
+
+/**
+ * Shared by both signup paths (password and OTP): format-check, then a
+ * fresh server-side availability check (defense against a stale client-side
+ * check — the RPC is also what the client polls while the user types).
+ */
+async function validateSignupUsername(
+  supabase: SupabaseServerClient,
+  username: string,
+): Promise<{ error: string } | { error: null }> {
+  if (!USERNAME_PATTERN.test(username)) {
+    return { error: 'Username must be 3-20 characters: lowercase letters, numbers, and underscores.' };
+  }
+
+  const { data: available, error: availabilityError } = await supabase.rpc('is_username_available', {
+    check_username: username,
+  });
+  if (availabilityError) return { error: readableError(availabilityError, 'Could not verify username availability.') };
+  if (!available) return { error: 'That username is already taken.' };
+
+  return { error: null };
+}
+
 export async function signUpWithEmail(_prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
   const name = String(formData.get('name') ?? '').trim();
   const email = String(formData.get('email') ?? '').trim();
@@ -23,17 +47,11 @@ export async function signUpWithEmail(_prev: ActionResult | null, formData: Form
   if (name.length < 2) return fail('Please enter your name.');
   if (!email.includes('@')) return fail('Please enter a valid email address.');
   if (password.length < 8) return fail('Password must be at least 8 characters.');
-  if (!USERNAME_PATTERN.test(username)) {
-    return fail('Username must be 3-20 characters: lowercase letters, numbers, and underscores.');
-  }
 
   const supabase = await createClient();
 
-  const { data: available, error: availabilityError } = await supabase.rpc('is_username_available', {
-    check_username: username,
-  });
-  if (availabilityError) return fail(readableError(availabilityError, 'Could not verify username availability.'));
-  if (!available) return fail('That username is already taken.');
+  const usernameCheck = await validateSignupUsername(supabase, username);
+  if (usernameCheck.error) return fail(usernameCheck.error);
 
   const { error } = await supabase.auth.signUp({
     email,
@@ -51,6 +69,39 @@ export async function signUpWithEmail(_prev: ActionResult | null, formData: Form
   return ok({ message: 'Check your inbox to confirm your email, then sign in.' });
 }
 
+/**
+ * OTP-based signup, step 1: collect name/email/username (no password), send
+ * a 6-digit code. Verification reuses `verifyEmailOtp` below — Supabase
+ * treats "verify a code for an email that doesn't have an account yet" and
+ * "verify a code for an existing account" identically once the code is
+ * requested with `shouldCreateUser: true`.
+ */
+export async function requestSignupOtp(_prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
+  const name = String(formData.get('name') ?? '').trim();
+  const email = String(formData.get('email') ?? '').trim();
+  const username = String(formData.get('username') ?? '').trim().toLowerCase();
+  const next = String(formData.get('next') ?? '/groups');
+
+  if (name.length < 2) return fail('Please enter your name.');
+  if (!email.includes('@')) return fail('Please enter a valid email address.');
+
+  const supabase = await createClient();
+
+  const usernameCheck = await validateSignupUsername(supabase, username);
+  if (usernameCheck.error) return fail(usernameCheck.error);
+
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+    options: {
+      shouldCreateUser: true,
+      data: { full_name: name, username },
+    },
+  });
+
+  if (error) return fail(readableError(error, 'We could not send a code. Please try again.'));
+  return ok({ email, next });
+}
+
 export async function signInWithEmail(_prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
   const email = String(formData.get('email') ?? '').trim();
   const password = String(formData.get('password') ?? '');
@@ -61,6 +112,38 @@ export async function signInWithEmail(_prev: ActionResult | null, formData: Form
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) return fail('That email and password do not match an account.');
+
+  revalidatePath('/', 'layout');
+  return ok(undefined, next.startsWith('/') ? next : '/groups');
+}
+
+export async function requestEmailOtp(_prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
+  const email = String(formData.get('email') ?? '').trim();
+  const next = String(formData.get('next') ?? '/groups');
+
+  if (!email.includes('@')) return fail('Please enter a valid email address.');
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+    options: { shouldCreateUser: true },
+  });
+
+  if (error) return fail(readableError(error, 'We could not send a code. Please try again.'));
+  return ok({ email, next });
+}
+
+export async function verifyEmailOtp(_prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
+  const email = String(formData.get('email') ?? '').trim();
+  const token = String(formData.get('token') ?? '').trim();
+  const next = String(formData.get('next') ?? '/groups');
+
+  if (!email.includes('@')) return fail('Please enter a valid email address.');
+  if (!/^\d{6}$/.test(token)) return fail('Enter the 6-digit code from your email.');
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.verifyOtp({ email, token, type: 'email' });
+  if (error) return fail(readableError(error, 'That code is invalid or has expired.'));
 
   revalidatePath('/', 'layout');
   return ok(undefined, next.startsWith('/') ? next : '/groups');

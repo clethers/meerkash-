@@ -1,15 +1,23 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useActionState, useEffect, useState } from 'react';
-import { signInWithEmail, signInWithGoogle, signUpWithEmail } from '@/lib/actions/auth';
+import {
+  requestEmailOtp,
+  requestSignupOtp,
+  signInWithEmail,
+  signInWithGoogle,
+  signUpWithEmail,
+  verifyEmailOtp,
+} from '@/lib/actions/auth';
 import type { ActionResult } from '@/lib/actions/shared';
 import { Alert } from '@/components/ui/Alert';
 import { SubmitButton } from '@/components/ui/SubmitButton';
 import { PasswordField } from './PasswordField';
 import { UsernameField } from './UsernameField';
 import { suggestEmailCorrection } from '@/lib/signup/emailSuggest';
+
+const RESEND_COOLDOWN_SECONDS = 30;
 
 function GoogleButton({ next }: { next: string }) {
   return (
@@ -41,34 +49,189 @@ function Divider() {
   );
 }
 
-export function LoginForm({ next }: { next: string }) {
-  const router = useRouter();
+function PasswordForm({ next }: { next: string }) {
   const [state, action] = useActionState<ActionResult | null, FormData>(signInWithEmail, null);
 
   useEffect(() => {
     if (state?.ok && state.redirectTo) {
-      router.push(state.redirectTo);
-      router.refresh();
+      // A full navigation, not router.push — the client router cache can
+      // still be holding the pre-login (logged-out) RSC payload for this
+      // URL, which bounces straight back to /login. A hard load always
+      // fetches fresh with the new session cookie.
+      window.location.href = state.redirectTo;
     }
-  }, [state, router]);
+  }, [state]);
+
+  return (
+    <form action={action} className="space-y-4">
+      <input type="hidden" name="next" value={next} />
+      <div>
+        <label className="label" htmlFor="email">Email</label>
+        <input id="email" name="email" type="email" autoComplete="email" required className="input mt-1.5" />
+      </div>
+      <div>
+        <label className="label" htmlFor="password">Password</label>
+        <input id="password" name="password" type="password" autoComplete="current-password" required className="input mt-1.5" />
+      </div>
+      {state?.error ? <Alert tone="error">{state.error}</Alert> : null}
+      <SubmitButton className="w-full" pendingLabel="Signing in…">Sign in</SubmitButton>
+    </form>
+  );
+}
+
+/**
+ * Step 2 shared by every OTP flow (login and signup): enter the code, or
+ * resend it. `extraFields` carries whatever the request action needs beyond
+ * email/next on a resend — signup's `requestSignupOtp` also needs
+ * name/username to re-validate and re-attach on every send.
+ */
+function OtpCodeStep({
+  email,
+  next,
+  requestAction,
+  verifyAction,
+  verifyState,
+  cooldown,
+  extraFields,
+  onUseDifferentEmail,
+}: {
+  email: string;
+  next: string;
+  requestAction: (formData: FormData) => void;
+  verifyAction: (formData: FormData) => void;
+  verifyState: ActionResult | null;
+  cooldown: number;
+  extraFields?: Record<string, string>;
+  onUseDifferentEmail: () => void;
+}) {
+  return (
+    <div className="space-y-4">
+      <form action={verifyAction} className="space-y-4">
+        <input type="hidden" name="email" value={email} />
+        <input type="hidden" name="next" value={next} />
+        <div>
+          <label className="label" htmlFor="otp-token">6-digit code</label>
+          <p className="mt-1 text-sm text-slate-600">Sent to {email}.</p>
+          <input
+            id="otp-token"
+            name="token"
+            type="text"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            pattern="\d{6}"
+            maxLength={6}
+            required
+            className="input mt-1.5 tracking-[0.3em]"
+          />
+        </div>
+        {verifyState?.error ? <Alert tone="error">{verifyState.error}</Alert> : null}
+        <SubmitButton className="w-full" pendingLabel="Verifying…">Verify and continue</SubmitButton>
+      </form>
+      <div className="flex items-center justify-between text-sm">
+        <button
+          type="button"
+          onClick={onUseDifferentEmail}
+          className="font-medium text-slate-600 hover:underline"
+        >
+          Use a different email
+        </button>
+        <form action={requestAction}>
+          <input type="hidden" name="email" value={email} />
+          <input type="hidden" name="next" value={next} />
+          {extraFields
+            ? Object.entries(extraFields).map(([fieldName, value]) => (
+                <input key={fieldName} type="hidden" name={fieldName} value={value} />
+              ))
+            : null}
+          <button
+            type="submit"
+            disabled={cooldown > 0}
+            className="font-medium text-brand-700 hover:underline disabled:cursor-not-allowed disabled:text-slate-400 disabled:no-underline"
+          >
+            {cooldown > 0 ? `Resend code (${cooldown}s)` : 'Resend code'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function EmailOtpForm({ next }: { next: string }) {
+  const [email, setEmail] = useState<string | null>(null);
+  const [cooldown, setCooldown] = useState(0);
+  const [requestState, requestAction] = useActionState<ActionResult | null, FormData>(requestEmailOtp, null);
+  const [verifyState, verifyAction] = useActionState<ActionResult | null, FormData>(verifyEmailOtp, null);
+
+  useEffect(() => {
+    if (requestState?.ok) {
+      setEmail(String(requestState.data?.email ?? ''));
+      setCooldown(RESEND_COOLDOWN_SECONDS);
+    }
+  }, [requestState]);
+
+  useEffect(() => {
+    if (verifyState?.ok && verifyState.redirectTo) {
+      window.location.href = verifyState.redirectTo;
+    }
+  }, [verifyState]);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const id = setInterval(() => setCooldown((s) => Math.max(0, s - 1)), 1000);
+    return () => clearInterval(id);
+  }, [cooldown]);
+
+  if (!email) {
+    return (
+      <form action={requestAction} className="space-y-4">
+        <input type="hidden" name="next" value={next} />
+        <div>
+          <label className="label" htmlFor="otp-email">Email</label>
+          <input id="otp-email" name="email" type="email" autoComplete="email" required className="input mt-1.5" />
+        </div>
+        {requestState?.error ? <Alert tone="error">{requestState.error}</Alert> : null}
+        <SubmitButton className="w-full" pendingLabel="Sending code…">Send code</SubmitButton>
+      </form>
+    );
+  }
+
+  return (
+    <OtpCodeStep
+      email={email}
+      next={next}
+      requestAction={requestAction}
+      verifyAction={verifyAction}
+      verifyState={verifyState}
+      cooldown={cooldown}
+      onUseDifferentEmail={() => setEmail(null)}
+    />
+  );
+}
+
+export function LoginForm({ next }: { next: string }) {
+  const [mode, setMode] = useState<'password' | 'otp'>('otp');
 
   return (
     <div className="space-y-4">
       <GoogleButton next={next} />
       <Divider />
-      <form action={action} className="space-y-4">
-        <input type="hidden" name="next" value={next} />
-        <div>
-          <label className="label" htmlFor="email">Email</label>
-          <input id="email" name="email" type="email" autoComplete="email" required className="input mt-1.5" />
-        </div>
-        <div>
-          <label className="label" htmlFor="password">Password</label>
-          <input id="password" name="password" type="password" autoComplete="current-password" required className="input mt-1.5" />
-        </div>
-        {state?.error ? <Alert tone="error">{state.error}</Alert> : null}
-        <SubmitButton className="w-full" pendingLabel="Signing in…">Sign in</SubmitButton>
-      </form>
+      <div className="flex rounded-xl bg-slate-100 p-1 text-sm font-medium">
+        <button
+          type="button"
+          onClick={() => setMode('password')}
+          className={`flex-1 rounded-lg py-1.5 transition-colors ${mode === 'password' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600'}`}
+        >
+          Password
+        </button>
+        <button
+          type="button"
+          onClick={() => setMode('otp')}
+          className={`flex-1 rounded-lg py-1.5 transition-colors ${mode === 'otp' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600'}`}
+        >
+          Email code
+        </button>
+      </div>
+      {mode === 'password' ? <PasswordForm next={next} /> : <EmailOtpForm next={next} />}
       <p className="text-center text-sm text-slate-600">
         New here?{' '}
         <Link href="/signup" className="font-medium text-brand-700 hover:underline">Create an account</Link>
@@ -77,54 +240,180 @@ export function LoginForm({ next }: { next: string }) {
   );
 }
 
-export function SignupForm({ next }: { next: string }) {
+/** Shared by both signup paths' step 1: name + email (with typo suggestion) + username. */
+function NameEmailUsernameFields({
+  name,
+  onNameChange,
+  email,
+  onEmailChange,
+  username,
+  onUsernameChange,
+}: {
+  name: string;
+  onNameChange: (value: string) => void;
+  email: string;
+  onEmailChange: (value: string) => void;
+  username: string;
+  onUsernameChange: (value: string) => void;
+}) {
+  const emailSuggestion = suggestEmailCorrection(email);
+
+  return (
+    <>
+      <div>
+        <label className="label" htmlFor="name">Your name</label>
+        <input
+          id="name"
+          name="name"
+          required
+          minLength={2}
+          autoComplete="name"
+          className="input mt-1.5"
+          placeholder="Clethers"
+          value={name}
+          onChange={(event) => onNameChange(event.target.value)}
+        />
+      </div>
+      <div>
+        <label className="label" htmlFor="email">Email</label>
+        <input
+          id="email"
+          name="email"
+          type="email"
+          autoComplete="email"
+          required
+          value={email}
+          onChange={(event) => onEmailChange(event.target.value)}
+          className="input mt-1.5"
+        />
+        {emailSuggestion ? (
+          <p className="mt-1 text-xs text-slate-500">
+            Did you mean{' '}
+            <button
+              type="button"
+              onClick={() => onEmailChange(emailSuggestion)}
+              className="font-medium text-brand-700 hover:underline"
+            >
+              {emailSuggestion}
+            </button>
+            ?
+          </p>
+        ) : null}
+      </div>
+      <UsernameField value={username} onChange={onUsernameChange} />
+    </>
+  );
+}
+
+function PasswordSignupForm({ next }: { next: string }) {
   const [state, action] = useActionState<ActionResult | null, FormData>(signUpWithEmail, null);
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
-  const emailSuggestion = suggestEmailCorrection(email);
+
+  return (
+    <form action={action} className="space-y-4">
+      <NameEmailUsernameFields
+        name={name}
+        onNameChange={setName}
+        email={email}
+        onEmailChange={setEmail}
+        username={username}
+        onUsernameChange={setUsername}
+      />
+      <PasswordField value={password} onChange={setPassword} />
+      {state?.error ? <Alert tone="error">{state.error}</Alert> : null}
+      {state?.ok ? <Alert tone="success">{String(state.data?.message ?? 'Account created.')}</Alert> : null}
+      <SubmitButton className="w-full" pendingLabel="Creating account…">Create account</SubmitButton>
+    </form>
+  );
+}
+
+function OtpSignupForm({ next }: { next: string }) {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState<string | null>(null);
+  const [pendingEmail, setPendingEmail] = useState('');
+  const [username, setUsername] = useState('');
+  const [cooldown, setCooldown] = useState(0);
+  const [requestState, requestAction] = useActionState<ActionResult | null, FormData>(requestSignupOtp, null);
+  const [verifyState, verifyAction] = useActionState<ActionResult | null, FormData>(verifyEmailOtp, null);
+
+  useEffect(() => {
+    if (requestState?.ok) {
+      setEmail(String(requestState.data?.email ?? ''));
+      setCooldown(RESEND_COOLDOWN_SECONDS);
+    }
+  }, [requestState]);
+
+  useEffect(() => {
+    if (verifyState?.ok && verifyState.redirectTo) {
+      window.location.href = verifyState.redirectTo;
+    }
+  }, [verifyState]);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const id = setInterval(() => setCooldown((s) => Math.max(0, s - 1)), 1000);
+    return () => clearInterval(id);
+  }, [cooldown]);
+
+  if (email) {
+    return (
+      <OtpCodeStep
+        email={email}
+        next={next}
+        requestAction={requestAction}
+        verifyAction={verifyAction}
+        verifyState={verifyState}
+        cooldown={cooldown}
+        extraFields={{ name, username }}
+        onUseDifferentEmail={() => setEmail(null)}
+      />
+    );
+  }
+
+  return (
+    <form action={requestAction} className="space-y-4">
+      <input type="hidden" name="next" value={next} />
+      <NameEmailUsernameFields
+        name={name}
+        onNameChange={setName}
+        email={pendingEmail}
+        onEmailChange={setPendingEmail}
+        username={username}
+        onUsernameChange={setUsername}
+      />
+      {requestState?.error ? <Alert tone="error">{requestState.error}</Alert> : null}
+      <SubmitButton className="w-full" pendingLabel="Sending code…">Send code</SubmitButton>
+    </form>
+  );
+}
+
+export function SignupForm({ next }: { next: string }) {
+  const [mode, setMode] = useState<'otp' | 'password'>('otp');
 
   return (
     <div className="space-y-4">
       <GoogleButton next={next} />
       <Divider />
-      <form action={action} className="space-y-4">
-        <div>
-          <label className="label" htmlFor="name">Your name</label>
-          <input id="name" name="name" required minLength={2} autoComplete="name" className="input mt-1.5" placeholder="Clethers" />
-        </div>
-        <div>
-          <label className="label" htmlFor="email">Email</label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            autoComplete="email"
-            required
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            className="input mt-1.5"
-          />
-          {emailSuggestion ? (
-            <p className="mt-1 text-xs text-slate-500">
-              Did you mean{' '}
-              <button
-                type="button"
-                onClick={() => setEmail(emailSuggestion)}
-                className="font-medium text-brand-700 hover:underline"
-              >
-                {emailSuggestion}
-              </button>
-              ?
-            </p>
-          ) : null}
-        </div>
-        <UsernameField value={username} onChange={setUsername} />
-        <PasswordField value={password} onChange={setPassword} />
-        {state?.error ? <Alert tone="error">{state.error}</Alert> : null}
-        {state?.ok ? <Alert tone="success">{String(state.data?.message ?? 'Account created.')}</Alert> : null}
-        <SubmitButton className="w-full" pendingLabel="Creating account…">Create account</SubmitButton>
-      </form>
+      <div className="flex rounded-xl bg-slate-100 p-1 text-sm font-medium">
+        <button
+          type="button"
+          onClick={() => setMode('password')}
+          className={`flex-1 rounded-lg py-1.5 transition-colors ${mode === 'password' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600'}`}
+        >
+          Password
+        </button>
+        <button
+          type="button"
+          onClick={() => setMode('otp')}
+          className={`flex-1 rounded-lg py-1.5 transition-colors ${mode === 'otp' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600'}`}
+        >
+          Email code
+        </button>
+      </div>
+      {mode === 'otp' ? <OtpSignupForm next={next} /> : <PasswordSignupForm next={next} />}
       <p className="text-center text-sm text-slate-600">
         Already have an account?{' '}
         <Link href="/login" className="font-medium text-brand-700 hover:underline">Sign in</Link>
