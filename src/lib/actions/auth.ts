@@ -12,26 +12,42 @@ function siteOrigin() {
   return process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
 }
 
+const USERNAME_PATTERN = /^[a-z0-9_]{3,20}$/;
+
 export async function signUpWithEmail(_prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
   const name = String(formData.get('name') ?? '').trim();
   const email = String(formData.get('email') ?? '').trim();
   const password = String(formData.get('password') ?? '');
+  const username = String(formData.get('username') ?? '').trim().toLowerCase();
 
   if (name.length < 2) return fail('Please enter your name.');
   if (!email.includes('@')) return fail('Please enter a valid email address.');
   if (password.length < 8) return fail('Password must be at least 8 characters.');
+  if (!USERNAME_PATTERN.test(username)) {
+    return fail('Username must be 3-20 characters: lowercase letters, numbers, and underscores.');
+  }
 
   const supabase = await createClient();
+
+  const { data: available, error: availabilityError } = await supabase.rpc('is_username_available', {
+    check_username: username,
+  });
+  if (availabilityError) return fail(readableError(availabilityError, 'Could not verify username availability.'));
+  if (!available) return fail('That username is already taken.');
+
   const { error } = await supabase.auth.signUp({
     email,
     password,
     options: {
-      data: { full_name: name },
+      data: { full_name: name, username },
       emailRedirectTo: `${siteOrigin()}/auth/callback`,
     },
   });
 
-  if (error) return fail(readableError(error, 'We could not create your account.'));
+  if (error) {
+    if (/username/i.test(error.message)) return fail('That username was just taken — try another.');
+    return fail(readableError(error, 'We could not create your account.'));
+  }
   return ok({ message: 'Check your inbox to confirm your email, then sign in.' });
 }
 
