@@ -1,3 +1,5 @@
+// src/components/auth/UsernameField.tsx
+
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
@@ -35,13 +37,27 @@ export function UsernameField({
 }) {
   const [status, setStatus] = useState<UsernameStatus>('idle');
   const supabaseRef = useRef(createClient());
+  const valueRef = useRef(value);
   const debouncedCheckRef = useRef(
     debounce((username: string) => {
       checkUsernameAvailable(supabaseRef.current, username)
-        .then((available) => setStatus(available ? 'available' : 'taken'))
-        .catch(() => setStatus('idle'));
+        .then((available) => {
+          // Only update status if this check is still for the current value
+          if (valueRef.current === username) {
+            setStatus(available ? 'available' : 'taken');
+          }
+        })
+        .catch(() => {
+          // Only reset to idle if this failed check is still for the current value
+          if (valueRef.current === username) {
+            setStatus('idle');
+          }
+        });
     }, 400),
   );
+
+  // Keep valueRef in sync with the current value prop
+  valueRef.current = value;
 
   useEffect(() => {
     if (value.length === 0) {
