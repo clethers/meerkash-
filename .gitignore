@@ -10,3 +10,4 @@ loop/.gate-state.json
 .superpowers/
 .env.test.local
 .claude/settings.local.json
+supabase/.temp/
