@@ -36,7 +36,7 @@ real, dedicated hosted project needs no Docker/virtualization at all.)
    functions, storage, avatars — directly to the test project's Postgres.
    (Alternatively: paste each migration file into the test project's
    Dashboard → SQL Editor, in order, one at a time.)
-3. Copy `.env.test.local.example` to `.env.test.local` and fill in the three
+3. Copy `env.rls-test.sample` to `.env.test.local` and fill in the three
    values from the test project's **Project Settings → API**:
    ```
    SUPABASE_TEST_URL=...

@@ -42,7 +42,7 @@ If you use the Supabase CLI instead: `supabase db push`.
 ### 4. Point the app at it
 
 ```bash
-cp .env.example .env.local
+cp env.sample .env.local
 ```
 
 Fill in from **Project Settings → API**:
