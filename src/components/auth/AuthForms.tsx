@@ -231,7 +231,9 @@ export function LoginForm({ next }: { next: string }) {
           Email code
         </button>
       </div>
-      {mode === 'password' ? <PasswordForm next={next} /> : <EmailOtpForm next={next} />}
+      <div key={mode} className="page-enter">
+        {mode === 'password' ? <PasswordForm next={next} /> : <EmailOtpForm next={next} />}
+      </div>
       <p className="text-center text-sm text-slate-600">
         New here?{' '}
         <Link href="/signup" className="font-medium text-brand-700 hover:underline">Create an account</Link>
@@ -413,7 +415,9 @@ export function SignupForm({ next }: { next: string }) {
           Email code
         </button>
       </div>
-      {mode === 'otp' ? <OtpSignupForm next={next} /> : <PasswordSignupForm next={next} />}
+      <div key={mode} className="page-enter">
+        {mode === 'otp' ? <OtpSignupForm next={next} /> : <PasswordSignupForm next={next} />}
+      </div>
       <p className="text-center text-sm text-slate-600">
         Already have an account?{' '}
         <Link href="/login" className="font-medium text-brand-700 hover:underline">Sign in</Link>

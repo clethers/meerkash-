@@ -30,3 +30,20 @@ body {
 
 /* Keep long tables and wide content inside their own scroller. */
 .scroll-x { @apply overflow-x-auto; }
+
+/*
+ * Shared entrance animation for page content (see src/app/(app)/template.tsx,
+ * which remounts on every navigation) and for content swapped in place (e.g.
+ * the login/signup password <-> email-code tabs). Kept to a subtle rise +
+ * fade so it reads as "content settling in", not a flashy effect.
+ */
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.page-enter {
+  animation: page-enter 220ms ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .page-enter { animation: none; }
+}
