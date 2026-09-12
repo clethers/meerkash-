@@ -28,7 +28,7 @@ export function ExpenseRow({
   return (
     <Link
       href={`/groups/${groupId}/expenses/${expense.id}`}
-      className={`flex items-center gap-3 px-4 py-3 transition-colors hover:bg-slate-50 ${
+      className={`flex items-center gap-3 px-4 py-3 transition-colors hover:bg-slate-50 dark:hover:bg-white/5 ${
         deleted ? 'opacity-60' : ''
       }`}
     >
@@ -38,11 +38,11 @@ export function ExpenseRow({
 
       <div className="min-w-0 flex-1">
         <p
-          className={`truncate font-medium text-slate-900 ${deleted ? 'line-through' : ''}`}
+          className={`truncate font-medium text-slate-900 dark:text-slate-50 ${deleted ? 'line-through' : ''}`}
         >
           {expense.description}
         </p>
-        <p className="truncate text-xs text-slate-500">
+        <p className="truncate text-xs text-slate-500 dark:text-slate-400">
           {iPaid ? 'You' : nameOf(expense.payer_id)} paid {formatMoney(expense.amount_centavos, currency)} ·{' '}
           {relativeTime(expense.created_at)}
           {deleted ? ' · deleted' : ''}
@@ -51,10 +51,10 @@ export function ExpenseRow({
 
       <div className="shrink-0 text-right">
         {deleted || delta === 0 ? (
-          <span className="text-xs text-slate-400">no effect</span>
+          <span className="text-xs text-slate-400 dark:text-slate-500">no effect</span>
         ) : (
           <>
-            <p className="text-[11px] text-slate-500">{delta > 0 ? 'you lent' : 'you borrowed'}</p>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400">{delta > 0 ? 'you lent' : 'you borrowed'}</p>
             <p className={`text-sm font-semibold ${delta > 0 ? 'money-positive' : 'money-negative'}`}>
               {formatMoney(Math.abs(delta), currency)}
             </p>

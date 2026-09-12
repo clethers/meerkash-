@@ -56,7 +56,7 @@ export function ExpenseFilters({
     <div className="space-y-3">
       <div className="flex gap-2">
         <div className="relative flex-1">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -67,7 +67,7 @@ export function ExpenseFilters({
         </div>
         <button
           onClick={() => setShowFilters((v) => !v)}
-          className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 dark:border-white/15 bg-white dark:bg-brand-950 px-3 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5"
         >
           <SlidersHorizontal size={16} />
           Filters
@@ -118,12 +118,12 @@ export function ExpenseFilters({
               <input id="f-to" type="date" value={to} onChange={(e) => setTo(e.target.value)} className="input mt-1.5" />
             </div>
           </div>
-          <label className="flex items-center gap-2 text-sm text-slate-700 sm:col-span-2">
+          <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 sm:col-span-2">
             <input
               type="checkbox"
               checked={includeDeleted}
               onChange={(e) => setIncludeDeleted(e.target.checked)}
-              className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+              className="h-4 w-4 rounded border-slate-300 dark:border-white/20 text-brand-600 focus:ring-brand-500"
             />
             Show deleted expenses
           </label>
@@ -150,7 +150,7 @@ export function ExpenseFilters({
           }
         />
       ) : (
-        <ul className="card divide-y divide-slate-100 overflow-hidden">
+        <ul className="card divide-y divide-slate-100 dark:divide-white/8 overflow-hidden">
           {filtered.map((expense) => (
             <li key={expense.id}>
               <ExpenseRow

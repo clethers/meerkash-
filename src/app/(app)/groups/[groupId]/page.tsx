@@ -68,15 +68,15 @@ export default async function GroupPage({
       {pendingForMe.length > 0 ? (
         <Link
           href={`/groups/${groupId}/settle`}
-          className="card flex items-center gap-3 border-amber-300 bg-amber-50 p-4 hover:border-amber-400"
+          className="card flex items-center gap-3 border-amber-300 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 p-4 hover:border-amber-400 dark:hover:border-amber-500/50"
         >
-          <Wallet size={18} className="text-amber-700" />
-          <span className="flex-1 text-sm text-amber-900">
+          <Wallet size={18} className="text-amber-700 dark:text-amber-400" />
+          <span className="flex-1 text-sm text-amber-900 dark:text-amber-200">
             {pendingForMe.length === 1
               ? `${bundle.nameOf(pendingForMe[0].from_user_id)} says they paid you ${formatMoney(pendingForMe[0].amount_centavos, bundle.group.currency)}.`
               : `${pendingForMe.length} payments are waiting for you to confirm.`}
           </span>
-          <ArrowRight size={16} className="text-amber-700" />
+          <ArrowRight size={16} className="text-amber-700 dark:text-amber-400" />
         </Link>
       ) : null}
 
@@ -126,21 +126,21 @@ export default async function GroupPage({
       {recentSettlements.length > 0 ? (
         <section className="space-y-3">
           <SectionLabel>Recent settlements</SectionLabel>
-          <ul className="card divide-y divide-slate-100 overflow-hidden">
+          <ul className="card divide-y divide-slate-100 dark:divide-white/8 overflow-hidden">
             {recentSettlements.map((s) => (
               <li key={s.id} className="flex items-center gap-3 px-4 py-3 text-sm">
-                <span className="flex-1 text-slate-700">
-                  <strong className="font-medium text-slate-900">
+                <span className="flex-1 text-slate-700 dark:text-slate-300">
+                  <strong className="font-medium text-slate-900 dark:text-slate-50">
                     {s.from_user_id === bundle.me.id ? 'You' : bundle.nameOf(s.from_user_id)}
                   </strong>{' '}
                   paid{' '}
-                  <strong className="font-medium text-slate-900">
+                  <strong className="font-medium text-slate-900 dark:text-slate-50">
                     {s.to_user_id === bundle.me.id ? 'you' : bundle.nameOf(s.to_user_id)}
                   </strong>{' '}
                   {formatMoney(s.amount_centavos, bundle.group.currency)}
                 </span>
                 <StatusPill status={s.status} />
-                <span className="hidden shrink-0 text-xs text-slate-400 sm:inline">
+                <span className="hidden shrink-0 text-xs text-slate-400 dark:text-slate-500 sm:inline">
                   {relativeTime(s.created_at)}
                 </span>
               </li>
@@ -155,17 +155,17 @@ export default async function GroupPage({
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="card p-4">
-      <p className="text-xs font-medium text-slate-500">{label}</p>
-      <p className="mt-1 text-lg font-semibold text-slate-900">{value}</p>
+      <p className="text-xs font-medium text-slate-500 dark:text-slate-400">{label}</p>
+      <p className="mt-1 text-lg font-semibold text-slate-900 dark:text-slate-50">{value}</p>
     </div>
   );
 }
 
 function StatusPill({ status }: { status: 'pending' | 'confirmed' | 'rejected' }) {
   const styles = {
-    pending: 'bg-amber-100 text-amber-800',
-    confirmed: 'bg-brand-100 text-brand-800',
-    rejected: 'bg-slate-200 text-slate-600',
+    pending: 'bg-amber-100 dark:bg-amber-500/15 text-amber-800 dark:text-amber-300',
+    confirmed: 'bg-brand-100 dark:bg-brand-500/15 text-brand-800 dark:text-brand-300',
+    rejected: 'bg-slate-200 dark:bg-white/10 text-slate-600 dark:text-slate-300',
   } as const;
   return (
     <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${styles[status]}`}>

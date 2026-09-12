@@ -27,8 +27,8 @@ export function BalanceSummary({
   if (summary.settledUp) {
     return (
       <div className="card p-5">
-        <p className="text-lg font-semibold text-slate-900">You are all settled up</p>
-        <p className="mt-1 text-sm text-slate-600">
+        <p className="text-lg font-semibold text-slate-900 dark:text-slate-50">You are all settled up</p>
+        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
           Nobody owes you anything in this group, and you owe nothing.
         </p>
       </div>
@@ -39,8 +39,8 @@ export function BalanceSummary({
 
   return (
     <div className="card overflow-hidden">
-      <div className={`px-5 py-4 ${owedMode ? 'bg-brand-50' : 'bg-rose-50'}`}>
-        <p className="text-sm text-slate-600">{owedMode ? 'You are owed' : 'You owe'}</p>
+      <div className={`px-5 py-4 ${owedMode ? 'bg-brand-50 dark:bg-brand-500/10' : 'bg-rose-50 dark:bg-rose-500/10'}`}>
+        <p className="text-sm text-slate-600 dark:text-slate-300">{owedMode ? 'You are owed' : 'You owe'}</p>
         <p
           className={`text-3xl font-semibold tracking-tight ${
             owedMode ? 'money-positive' : 'money-negative'
@@ -50,12 +50,12 @@ export function BalanceSummary({
         </p>
       </div>
 
-      <ul className="divide-y divide-slate-100">
+      <ul className="divide-y divide-slate-100 dark:divide-white/8">
         {summary.owedToYou.map((line) => (
           <li key={line.userId} className="flex items-center gap-3 px-5 py-3">
             <Avatar name={nameOf(line.userId)} src={avatarOf(line.userId)} size={34} />
-            <span className="min-w-0 flex-1 truncate text-sm text-slate-700">
-              <strong className="font-medium text-slate-900">{nameOf(line.userId)}</strong> owes you
+            <span className="min-w-0 flex-1 truncate text-sm text-slate-700 dark:text-slate-300">
+              <strong className="font-medium text-slate-900 dark:text-slate-50">{nameOf(line.userId)}</strong> owes you
             </span>
             <span className="font-semibold money-positive">{formatMoney(line.amount, currency)}</span>
             <NudgeButton
@@ -69,8 +69,8 @@ export function BalanceSummary({
         {summary.youOwe.map((line) => (
           <li key={line.userId} className="flex items-center gap-3 px-5 py-3">
             <Avatar name={nameOf(line.userId)} src={avatarOf(line.userId)} size={34} />
-            <span className="min-w-0 flex-1 truncate text-sm text-slate-700">
-              You owe <strong className="font-medium text-slate-900">{nameOf(line.userId)}</strong>
+            <span className="min-w-0 flex-1 truncate text-sm text-slate-700 dark:text-slate-300">
+              You owe <strong className="font-medium text-slate-900 dark:text-slate-50">{nameOf(line.userId)}</strong>
             </span>
             <span className="font-semibold money-negative">{formatMoney(line.amount, currency)}</span>
             <Link
