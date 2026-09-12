@@ -2,22 +2,31 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Reskin the whole app (landing, auth, and every in-app screen) with a frosted-glass visual system over an ambient gradient backdrop, blended with the existing brand/receipt identity, and ship full OS-driven dark mode alongside it — in one pass.
+**Goal:** Reskin the whole app (landing, auth, and every in-app screen) with a frosted-glass visual system over an ambient gradient backdrop, blended with the existing brand/receipt identity, and ship full dark mode alongside it — in one pass.
 
 **Architecture:** A small set of shared primitives (`globals.css` tokens, one `<AmbientBackdrop>` component, one `GLASS_SURFACE` Tailwind string) does most of the work by cascading into ~30 screens that already use `.card`/`.input`/`.label`. On top of that, a per-file `dark:` text/border/background pass (a fixed, mechanical substitution table, given once below and applied file-by-file) makes every screen legible in dark mode. Two files get a structural fix (per-row cards → one shared list card) as part of this pass. No server actions, data layer, or business logic changes anywhere.
 
-**Tech Stack:** Next.js 15 (App Router), Tailwind CSS 3.4 (default `media`-strategy dark mode — no config change needed), TypeScript, CSS Modules (for the two bespoke visual files: `landing.module.css`, `AmbientBackdrop.module.css`). No new dependencies.
+**Tech Stack:** Next.js 15 (App Router), Tailwind CSS 3.4, TypeScript, CSS Modules (for the two bespoke visual files: `landing.module.css`, `AmbientBackdrop.module.css`). No new dependencies.
 
 **Spec:** `docs/superpowers/specs/2026-09-12-glassmorphism-design.md`
+
+**Reconciled with concurrent work:** a separate in-flight session has already (uncommitted) added `darkMode: 'class'` to `tailwind.config.ts`, a `<ThemeToggle>` component (flips the `dark` class on `<html>`, persists to `localStorage`, applied pre-hydration via a script in `src/app/layout.tsx`), and a `<Wordmark>` component. This plan **adopts** that work rather than assuming Tailwind's OS-driven `media` strategy or building its own toggle:
+- Every `dark:` Tailwind utility class in this plan works identically under `class` or `media` strategy — only the trigger differs — so none of the many `dark:` JSX classes below need to change.
+- The two files that use **raw CSS media queries** instead of Tailwind (`AmbientBackdrop.module.css`, `landing.module.css`) do need different selectors — `:global(.dark) .foo` instead of `@media (prefers-color-scheme: dark) { .foo { ... } }` — called out explicitly in Tasks 2 and 4.
+- Task 1 no longer adds `darkMode` to `tailwind.config.ts` (already present) — it only adds the `night` color token, additively, without disturbing the existing `darkMode: 'class'` or `fontFamily.display` lines.
+- Task 3 wires the existing `<ThemeToggle>` into the new glass top nav (it isn't rendered anywhere yet).
+- `<Wordmark>` is NOT touched or integrated by this plan — that stays with the session that owns it, per the Global Constraints below.
 
 ## Global Constraints
 
 - No changes to server actions, `src/lib/data/**`, `src/lib/actions/**`, RLS, or the balance engine — visual layer only (`src/app/**/*.tsx`, `src/components/**`, `src/app/globals.css`, `tailwind.config.ts`, `landing.module.css`).
-- Do not touch `<Image src="/logo.png" .../>` or `/wordmark.png` usages — a separate in-flight session owns wordmark replacement.
+- Do not touch `<Image src="/logo.png" .../>` or `/wordmark.png` usages, and do not wire in `<Wordmark>` — a separate in-flight session owns wordmark replacement end-to-end.
+- Do not touch anything under `src/components/settlements/`, `src/lib/spendingSummary.ts`, `supabase/migrations/0016_*`, or `scripts/*qr*` — an unrelated payment-QR feature is mid-flight, uncommitted, in this same tree.
 - **No nested blur**: an element never gets its own `backdrop-blur-*` if its parent already has one. Buttons/inputs/badges inside a `.card` stay flat.
 - **One glass container per list, not per row.** Friends and Groups lists move from per-row `.card` to one `.card` with `divide-y` rows (Task 7).
 - `npm run typecheck` must stay clean after every task. `npm test` (vitest) must stay green throughout — no logic changed, so any failure means something broke.
-- Verify every task with the dev server (`npm run dev`; check `netstat -ano | grep 3000` first — don't run `npm run gate`/`next build` while `next dev` is running, shared `.next` dir corrupts) via Playwright, logged in as `admin@abonoshare.app` / `adminadmin`, in **both** light and dark (`prefers-color-scheme` emulation). Screenshot both.
+- Before starting Task 1, run `git status` and confirm with the user which currently-uncommitted files are safe to build on top of vs. still actively changing elsewhere — this tree has multiple concurrent sessions' uncommitted work in it right now.
+- Verify every task with the dev server (`npm run dev`; check `netstat -ano | grep 3000` first — don't run `npm run gate`/`next build` while `next dev` is running, shared `.next` dir corrupts) via Playwright, logged in as `admin@abonoshare.app` / `adminadmin`, in **both** light and dark — toggle via the in-app `<ThemeToggle>` button, not OS/browser emulation (that only works for `media`-strategy dark mode, which this app no longer uses). Screenshot both. On pages with no nav (landing `/`, `/login`, `/signup` — `<ThemeToggle>` only lives in the app-shell nav, wired in Task 3), force dark mode instead via the browser console: `localStorage.setItem('theme','dark'); location.reload();` (and `localStorage.removeItem('theme'); location.reload();` to return to light) — the pre-hydration script in `src/app/layout.tsx` reads the same `theme` key on every page.
 - **Standard dark: substitution table** (apply verbatim wherever these exact classes appear in a file this plan touches):
 
   | Light class | Add dark companion |
@@ -73,7 +82,9 @@
 
 - [ ] **Step 1: Add the `night` token**
 
-In `tailwind.config.ts`, add `night` alongside the existing palette:
+`tailwind.config.ts` already has uncommitted changes from concurrent work (`darkMode: 'class'` and a `fontFamily.display` entry) — this step is **additive only**: open the file and add a single `night: '#07130e',` line inside the existing `colors: { brand: {...}, paper: ..., receipt: ..., ink: ... }` object, right after the `ink` line. Do not replace the whole `colors` block or the whole file, and do not touch the `darkMode` or `fontFamily` keys — they're not this plan's to add (already there) or change.
+
+The result should have `colors` looking like:
 
 ```ts
 colors: {
@@ -88,6 +99,8 @@ colors: {
   night: '#07130e',
 },
 ```
+
+— with whatever `darkMode`/`fontFamily` lines are already in the file, above and below this block, left exactly as they are.
 
 - [ ] **Step 2: Retint the shared primitives**
 
@@ -201,15 +214,16 @@ git commit -m "style: convert shared card/input primitives to glassmorphism with
   animation: drift 28s ease-in-out infinite alternate;
 }
 
-@media (prefers-color-scheme: dark) {
-  .backdrop { background: #07130e; }
-  .backdrop::before {
-    background:
-      radial-gradient(ellipse 38% 32% at 12% 8%, rgba(255, 140, 105, 0.3), transparent 70%),
-      radial-gradient(ellipse 44% 36% at 90% 12%, rgba(48, 201, 143, 0.32), transparent 72%),
-      radial-gradient(ellipse 46% 40% at 82% 90%, rgba(115, 165, 255, 0.26), transparent 72%),
-      radial-gradient(ellipse 40% 36% at 8% 90%, rgba(255, 198, 92, 0.24), transparent 70%);
-  }
+/* Dark mode is a `.dark` class on <html> (set by <ThemeToggle>), not OS
+   preference — a plain `:global()` selector, not a media query, so this
+   responds to the same toggle as every Tailwind `dark:` class elsewhere. */
+:global(.dark) .backdrop { background: #07130e; }
+:global(.dark) .backdrop::before {
+  background:
+    radial-gradient(ellipse 38% 32% at 12% 8%, rgba(255, 140, 105, 0.3), transparent 70%),
+    radial-gradient(ellipse 44% 36% at 90% 12%, rgba(48, 201, 143, 0.32), transparent 72%),
+    radial-gradient(ellipse 46% 40% at 82% 90%, rgba(115, 165, 255, 0.26), transparent 72%),
+    radial-gradient(ellipse 40% 36% at 8% 90%, rgba(255, 198, 92, 0.24), transparent 70%);
 }
 
 @keyframes drift {
@@ -327,7 +341,7 @@ Expected: clean.
 
 - [ ] **Step 6: Visual check**
 
-Dev server, Playwright: screenshot `/login`, `/groups`, and `/` (landing, on desktop UA — it redirects on mobile UA) in light and dark. Confirm the blurred gradient blobs are visible behind the login card, behind the group page's (still receipt-colored, pre-Task-3) cards, and behind the landing hero — and that the blobs' colors and position shift between light/dark. Confirm `prefers-reduced-motion` (emulate in Playwright/devtools) freezes the drift. Zero new console errors.
+`<ThemeToggle>` isn't rendered anywhere yet (that's Task 3), so force dark mode via the browser console on each page: `localStorage.setItem('theme','dark'); location.reload();` (the pre-hydration script and `.dark` class already work regardless of whether anything renders the toggle button). Dev server, Playwright: screenshot `/login`, `/groups`, and `/` (landing, on desktop UA — it redirects on mobile UA) in light and dark. Confirm the blurred gradient blobs are visible behind the login card, behind the group page's (still receipt-colored, pre-Task-3) cards, and behind the landing hero — and that the blobs' colors and position shift between light/dark. Confirm `prefers-reduced-motion` (emulate in Playwright/devtools) freezes the drift. Zero new console errors.
 
 - [ ] **Step 7: Commit**
 
@@ -346,9 +360,11 @@ git commit -m "feat: add ambient gradient backdrop behind app shell, auth shell,
 - Modify: `src/components/AppDockClient.tsx`
 - Modify: `src/components/AppNav.tsx`
 - Modify: `src/components/AppNavClient.tsx`
+- Modify: `src/components/ThemeToggle.tsx` (dark: class fix only — not otherwise this plan's to own)
 
 **Interfaces:**
 - Produces: `GLASS_SURFACE` (string constant) from `@/lib/ui/glass`, consumed by `AppDockClient.tsx` and `AppNavClient.tsx`.
+- Consumes: `ThemeToggle` (zero-prop component) from `@/components/ThemeToggle`, already built by concurrent work — this task renders it for the first time anywhere in the app.
 
 - [ ] **Step 1: Extract the shared glass string**
 
@@ -425,7 +441,7 @@ export async function AppNav() {
 }
 ```
 
-`src/components/AppNavClient.tsx` — the `<nav>` itself becomes the glass pill (add `cn` and `GLASS_SURFACE` imports):
+`src/components/AppNavClient.tsx` — the `<nav>` itself becomes the glass pill (add `cn` and `GLASS_SURFACE` imports), and this is also where the existing, not-yet-rendered-anywhere `<ThemeToggle>` gets wired in, grouped with the bell on the right:
 
 ```tsx
 'use client';
@@ -434,6 +450,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Bell } from 'lucide-react';
 import { AddExpenseButton } from '@/components/AddExpenseButton';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { GLASS_SURFACE } from '@/lib/ui/glass';
 import { cn } from '@/lib/utils';
 import type { Group } from '@/types/db';
@@ -454,23 +471,36 @@ export function AppNavClient({ groups, unread }: { groups: Group[]; unread: numb
         />
       </Link>
 
-      <Link
-        href="/notifications"
-        aria-label={unread > 0 ? `Notifications, ${unread} unread` : 'Notifications'}
-        className={cn(
-          'relative flex h-11 w-11 items-center justify-center rounded-full text-slate-600 dark:text-slate-300',
-          'transition-[background-color,transform] duration-200 ease-out',
-          'hover:scale-110 hover:bg-slate-100 dark:hover:bg-white/10 active:scale-95 motion-reduce:hover:scale-100',
-        )}
-      >
-        <Bell size={20} />
-        {unread > 0 ? (
-          <span className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full bg-rose-500 ring-2 ring-white dark:ring-night" />
-        ) : null}
-      </Link>
+      <div className="flex items-center gap-1">
+        <ThemeToggle />
+        <Link
+          href="/notifications"
+          aria-label={unread > 0 ? `Notifications, ${unread} unread` : 'Notifications'}
+          className={cn(
+            'relative flex h-11 w-11 items-center justify-center rounded-full text-slate-600 dark:text-slate-300',
+            'transition-[background-color,transform] duration-200 ease-out',
+            'hover:scale-110 hover:bg-slate-100 dark:hover:bg-white/10 active:scale-95 motion-reduce:hover:scale-100',
+          )}
+        >
+          <Bell size={20} />
+          {unread > 0 ? (
+            <span className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full bg-rose-500 ring-2 ring-white dark:ring-night" />
+          ) : null}
+        </Link>
+      </div>
     </nav>
   );
 }
+```
+
+`<ThemeToggle>` itself needs one small fix while you're in there: its own className string (`text-slate-600 ... hover:bg-slate-100`) predates this plan's dark pass and has no `dark:` companion. Update it to match every other icon button in this file:
+
+```tsx
+className={[
+  'flex h-11 w-11 items-center justify-center rounded-full text-slate-600 dark:text-slate-300',
+  'transition-[background-color,transform] duration-200 ease-out',
+  'hover:scale-110 hover:bg-slate-100 dark:hover:bg-white/10 active:scale-95 motion-reduce:hover:scale-100',
+].join(' ')}
 ```
 
 (`(app)/layout.tsx`'s `<main>` keeps its existing `pt-12` unchanged — the nav is still in normal document flow, just wrapped and floating, so the same gap logic applies.)
@@ -482,13 +512,13 @@ Expected: clean.
 
 - [ ] **Step 5: Visual check**
 
-Dev server, Playwright, `/groups` in light and dark. Confirm: top nav is now a floating rounded glass bar (not edge-to-edge), bottom dock matches it exactly (same border/blur/shadow recipe), icons and the unread/pending badge rings look correct in both themes, hover states visible. Zero new console errors.
+Dev server, Playwright, `/groups`. Click the new moon/sun `<ThemeToggle>` button in the top nav and confirm it actually flips the whole app to dark (this is the first place it's rendered — if it does nothing, the import/wiring is wrong). In both states, confirm: top nav is now a floating rounded glass bar (not edge-to-edge), bottom dock matches it exactly (same border/blur/shadow recipe), icons and the unread/pending badge rings look correct, hover states visible. Reload the page after toggling to confirm the choice persisted (pre-hydration script + `localStorage`). Zero new console errors.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/lib/ui/glass.ts src/components/AppDockClient.tsx src/components/AppNav.tsx src/components/AppNavClient.tsx
-git commit -m "feat: unify top nav and bottom dock into one floating glass surface, with dark mode"
+git add src/lib/ui/glass.ts src/components/AppDockClient.tsx src/components/AppNav.tsx src/components/AppNavClient.tsx src/components/ThemeToggle.tsx
+git commit -m "feat: unify top nav and bottom dock into one floating glass surface; wire up dark mode toggle"
 ```
 
 ---
@@ -527,17 +557,15 @@ Then change the `.stamp` rule's `background` line from `rgba(251, 251, 248, 0.6)
 
 - [ ] **Step 2: Add the dark palette override**
 
-Append, right after the `.stage` rule:
+Append, right after the `.stage` rule (a `:global()` selector, not a media query — dark mode here follows the same `.dark` class on `<html>` that `<ThemeToggle>` sets everywhere else, not OS preference):
 
 ```css
-@media (prefers-color-scheme: dark) {
-  .stage {
-    --ink: #eef6f1;
-    --copy: #b6c7bd;
-    --receipt: #182420;
-    --rule: rgba(238, 246, 241, 0.2);
-    --stamp-bg: rgba(24, 36, 32, 0.55);
-  }
+:global(.dark) .stage {
+  --ink: #eef6f1;
+  --copy: #b6c7bd;
+  --receipt: #182420;
+  --rule: rgba(238, 246, 241, 0.2);
+  --stamp-bg: rgba(24, 36, 32, 0.55);
 }
 ```
 
@@ -562,12 +590,10 @@ Replace the `.nav` rule with:
   -webkit-backdrop-filter: blur(18px) saturate(150%);
   box-shadow: 0 10px 24px rgba(16, 36, 28, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.55);
 }
-@media (prefers-color-scheme: dark) {
-  .nav {
-    border-color: rgba(255, 255, 255, 0.1);
-    background: rgba(19, 32, 26, 0.48);
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  }
+:global(.dark) .nav {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(19, 32, 26, 0.48);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 ```
 
@@ -588,12 +614,10 @@ The `.feature` rule currently has no visual box at all (`max-width: 34ch;` only)
   -webkit-backdrop-filter: blur(18px) saturate(150%);
   box-shadow: 0 10px 24px rgba(16, 36, 28, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.55);
 }
-@media (prefers-color-scheme: dark) {
-  .feature {
-    border-color: rgba(255, 255, 255, 0.1);
-    background: rgba(22, 37, 30, 0.7);
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  }
+:global(.dark) .feature {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(22, 37, 30, 0.7);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 ```
 

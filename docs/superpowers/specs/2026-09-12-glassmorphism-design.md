@@ -50,10 +50,21 @@ visually almost identical to the `night` canvas, giving cards a "slightly
 lighter than the page" feel exactly like the light-mode `receipt`-on-`paper`
 relationship does today.
 
-**Darkmode strategy:** Tailwind's default `media` strategy (`prefers-color-
-scheme`), already relied on by the (unshipped) 2026-09-06 Honey Neutral spec
-— no `darkMode: 'class'` config change, no in-app toggle. `tailwind.config.ts`
-has no `darkMode` key today, so the default already applies.
+**Darkmode strategy (revised after discovering concurrent work):** a separate
+in-flight session has already added `darkMode: 'class'` to
+`tailwind.config.ts`, plus a `<ThemeToggle>` component (flips the `dark`
+class on `<html>`, persists to `localStorage`, applied pre-hydration via a
+script in `src/app/layout.tsx`) and a `<Wordmark>` component — all
+uncommitted, found mid-way through writing this spec's implementation plan.
+This spec adopts that work rather than the originally-planned OS-driven
+`media` strategy: every `dark:` Tailwind utility class below works
+identically under either strategy (only the activation trigger differs), so
+the token system and substitution table are unaffected. The two CSS-module
+files that use raw `@media (prefers-color-scheme: dark)` today
+(`AmbientBackdrop.module.css`, `landing.module.css`) instead use
+`:global(.dark) .foo` selectors. `<ThemeToggle>` gets wired into the new
+glass top nav (it wasn't rendered anywhere before). `<Wordmark>` is left
+alone — that integration stays with the session that owns it.
 
 ### Shared primitive classes (`src/app/globals.css`)
 
@@ -148,9 +159,11 @@ mode this spec exists to avoid.
 
 ## Out of scope (this pass)
 
-An in-app light/dark toggle (vs. following OS preference) — nothing asks for
-one, matches the precedent set by the unshipped Honey Neutral spec. Pixel-
-perfect dark-mode tuning of the least-visited screens (recurring forms,
-expense edit, member management detail rows) beyond what the shared
-primitive + text-color pass gives them for free — if something reads wrong
-there after this ships, it's a fast follow, not a blocker for "at once."
+Building an in-app light/dark toggle from scratch — superseded by the
+concurrent session's `<ThemeToggle>`, which this pass adopts instead (see
+"Darkmode strategy" above). Pixel-perfect dark-mode tuning of the
+least-visited screens (recurring forms, expense edit, member management
+detail rows) beyond what the shared primitive + text-color pass gives them
+for free — if something reads wrong there after this ships, it's a fast
+follow, not a blocker for "at once." Wordmark/logo integration (a separate
+session's work, left untouched here).
