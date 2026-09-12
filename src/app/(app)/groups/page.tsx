@@ -54,19 +54,19 @@ export default async function GroupsPage() {
 
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Your groups</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-50">Your groups</h1>
           {groups.length === 0 ? (
-            <p className="mt-1 text-sm text-slate-600">
+            <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
               Start a group for your next trip, dinner or shared bill.
             </p>
           ) : nonZero.length === 0 ? (
-            <p className="mt-1 text-sm text-slate-600">You are all settled up across every group.</p>
+            <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">You are all settled up across every group.</p>
           ) : (
-            <p className="mt-1 space-x-3 text-sm text-slate-600">
+            <p className="mt-1 space-x-3 text-sm text-slate-600 dark:text-slate-300">
               {nonZero.map(([currency, amount]) => (
                 <span key={currency}>
                   {amount > 0 ? 'You are owed ' : 'You owe '}
-                  <strong className="font-medium text-slate-900">
+                  <strong className="font-medium text-slate-900 dark:text-slate-50">
                     {formatMoney(Math.abs(amount), currency)}
                   </strong>
                 </span>
@@ -74,7 +74,7 @@ export default async function GroupsPage() {
             </p>
           )}
           {convertedTotal !== null && me?.preferred_currency ? (
-            <p className="mt-1 text-xs text-slate-500">
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
               ≈ {formatMoney(Math.abs(convertedTotal), me.preferred_currency)} net in{' '}
               {me.preferred_currency}{convertedPartial ? ' (some currencies not converted)' : ''} —
               approximate, based on today&apos;s exchange rates
@@ -94,12 +94,12 @@ export default async function GroupsPage() {
           />
         </div>
       ) : (
-        <ul className="space-y-2">
+        <ul className="card divide-y divide-slate-100 dark:divide-white/10 overflow-hidden">
           {groups.map(({ group, balance, memberCount }) => (
             <li key={group.id}>
               <Link
                 href={`/groups/${group.id}`}
-                className="card flex items-center gap-4 p-4 transition-colors hover:border-brand-300"
+                className="flex items-center gap-4 p-4 transition-colors hover:bg-slate-50 dark:hover:bg-white/5"
               >
                 <Avatar
                   name={group.name}
@@ -108,17 +108,17 @@ export default async function GroupsPage() {
                   size={44}
                 />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium text-slate-900">{group.name}</p>
-                  <p className="text-sm text-slate-500">
+                  <p className="truncate font-medium text-slate-900 dark:text-slate-50">{group.name}</p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
                     {memberCount} {memberCount === 1 ? 'member' : 'members'}
                   </p>
                 </div>
                 <div className="text-right">
                   {balance === 0 ? (
-                    <span className="text-sm text-slate-500">Settled up</span>
+                    <span className="text-sm text-slate-500 dark:text-slate-400">Settled up</span>
                   ) : (
                     <>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
                         {balance > 0 ? 'you are owed' : 'you owe'}
                       </p>
                       <p
@@ -129,7 +129,7 @@ export default async function GroupsPage() {
                     </>
                   )}
                 </div>
-                <ChevronRight size={18} className="shrink-0 text-slate-300" />
+                <ChevronRight size={18} className="shrink-0 text-slate-300 dark:text-slate-600" />
               </Link>
             </li>
           ))}

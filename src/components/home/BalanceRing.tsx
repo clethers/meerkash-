@@ -23,17 +23,17 @@ export function BalanceRing({
               'flex h-14 w-14 items-center justify-center rounded-full p-0.5',
               netCentavos < 0 && 'bg-gradient-to-tr from-rose-300 to-rose-600',
               netCentavos > 0 && 'bg-gradient-to-tr from-brand-300 to-brand-600',
-              netCentavos === 0 && 'bg-slate-300',
+              netCentavos === 0 && 'bg-slate-300 dark:bg-white/15',
             )}
           >
             <Avatar
               name={profile.display_name}
               src={profile.avatar_url}
               size={52}
-              className="border-2 border-paper"
+              className="border-2 border-paper dark:border-night"
             />
           </span>
-          <span className="w-full truncate text-center text-[11px] text-slate-600">
+          <span className="w-full truncate text-center text-[11px] text-slate-600 dark:text-slate-400">
             {profile.display_name}
           </span>
         </Link>

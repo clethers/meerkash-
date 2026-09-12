@@ -27,22 +27,22 @@ export function NotificationList({ notifications }: { notifications: AppNotifica
         </Button>
       ) : null}
 
-      <ul className="card divide-y divide-slate-100 overflow-hidden">
+      <ul className="card divide-y divide-slate-100 dark:divide-white/10 overflow-hidden">
         {notifications.map((notification) => {
           const body = (
-            <div className={`px-4 py-3 ${notification.read_at ? '' : 'bg-brand-50/60'}`}>
+            <div className={`px-4 py-3 ${notification.read_at ? '' : 'bg-brand-50/60 dark:bg-brand-500/10'}`}>
               <div className="flex items-start gap-2">
                 {!notification.read_at ? (
-                  <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-brand-600" aria-hidden />
+                  <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-brand-600 dark:bg-brand-400" aria-hidden />
                 ) : (
                   <span className="mt-1.5 h-2 w-2 shrink-0" aria-hidden />
                 )}
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-slate-900">{notification.title}</p>
+                  <p className="text-sm font-medium text-slate-900 dark:text-slate-50">{notification.title}</p>
                   {notification.body ? (
-                    <p className="text-sm text-slate-600">{notification.body}</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-300">{notification.body}</p>
                   ) : null}
-                  <p className="mt-0.5 text-xs text-slate-400">
+                  <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">
                     {relativeTime(notification.created_at)}
                   </p>
                 </div>
@@ -56,7 +56,7 @@ export function NotificationList({ notifications }: { notifications: AppNotifica
                 <Link
                   href={notification.link}
                   onClick={() => { void markRead(notification.id); }}
-                  className="block hover:bg-slate-50"
+                  className="block hover:bg-slate-50 dark:hover:bg-white/5"
                 >
                   {body}
                 </Link>
