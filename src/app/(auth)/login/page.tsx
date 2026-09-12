@@ -12,8 +12,8 @@ export default async function LoginPage({
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">Welcome back</h1>
-        <p className="mt-1 text-sm text-slate-600">Sign in to see where your groups stand.</p>
+        <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-50">Welcome back</h1>
+        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Sign in to see where your groups stand.</p>
       </div>
       {params.error ? (
         <Alert tone="error">We could not finish signing you in. Please try again.</Alert>

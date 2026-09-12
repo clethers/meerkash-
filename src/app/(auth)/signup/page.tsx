@@ -11,8 +11,8 @@ export default async function SignupPage({
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">Create your account</h1>
-        <p className="mt-1 text-sm text-slate-600">Free, and takes about a minute.</p>
+        <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-50">Create your account</h1>
+        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Free, and takes about a minute.</p>
       </div>
       <SignupForm next={next} />
     </div>

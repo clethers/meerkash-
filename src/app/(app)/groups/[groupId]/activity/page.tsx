@@ -30,7 +30,7 @@ export default async function ActivityPage({
 
       <div>
         <SectionLabel>Everything that happened</SectionLabel>
-        <p className="mt-1 text-sm text-slate-600">
+        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
           A permanent record, including expenses that were edited or deleted.
         </p>
       </div>
@@ -40,7 +40,7 @@ export default async function ActivityPage({
           <EmptyState title="Nothing has happened yet" description="Add an expense to get started." />
         </div>
       ) : (
-        <ul className="card divide-y divide-slate-100 overflow-hidden">
+        <ul className="card divide-y divide-slate-100 dark:divide-white/10 overflow-hidden">
           {entries.map((entry) => (
             <li key={entry.id} className="flex gap-3 px-4 py-3">
               <Avatar
@@ -49,8 +49,8 @@ export default async function ActivityPage({
                 size={30}
               />
               <div className="min-w-0 flex-1">
-                <p className="text-sm text-slate-800">{describeActivity(entry, bundle.nameOf, bundle.group.currency)}</p>
-                <p className="text-xs text-slate-500">{formatDateTime(entry.created_at)}</p>
+                <p className="text-sm text-slate-800 dark:text-slate-100">{describeActivity(entry, bundle.nameOf, bundle.group.currency)}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">{formatDateTime(entry.created_at)}</p>
               </div>
             </li>
           ))}

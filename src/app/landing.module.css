@@ -16,6 +16,7 @@
 :global(.dark) .stage {
   --ink: #eef6f1;
   --copy: #b6c7bd;
+  --brand-dark: #7dd7ad;
   --receipt: #182420;
   --rule: rgba(238, 246, 241, 0.2);
   --stamp-bg: rgba(24, 36, 32, 0.55);
@@ -151,6 +152,11 @@
   transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
 .ctaPrimary:hover { transform: translateY(-1px); box-shadow: 0 10px 26px rgba(16, 36, 28, 0.3); }
+:global(.dark) .ctaPrimary {
+  background: var(--brand);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+:global(.dark) .ctaPrimary:hover { box-shadow: 0 10px 26px rgba(0, 0, 0, 0.45); }
 
 .ctaSecondary {
   padding: 13px 22px;

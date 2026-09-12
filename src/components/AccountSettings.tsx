@@ -79,7 +79,7 @@ export function ProfileForm({
           <img
             src={paymentQrUrl}
             alt="Your payment QR code"
-            className="mt-1.5 mb-2 h-28 w-28 rounded-lg border border-slate-200 object-contain"
+            className="mt-1.5 mb-2 h-28 w-28 rounded-lg border border-slate-200 dark:border-white/15 object-contain"
           />
         ) : null}
         <input
@@ -87,10 +87,10 @@ export function ProfileForm({
           name="payment_qr"
           type="file"
           accept="image/png,image/jpeg,image/webp,image/gif"
-          className="mt-1.5 block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-slate-700 hover:file:bg-slate-200"
+          className="mt-1.5 block w-full text-sm text-slate-600 dark:text-slate-300 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-100 dark:file:bg-white/10 file:px-3 file:py-2 file:text-sm file:font-medium file:text-slate-700 dark:file:text-slate-200 hover:file:bg-slate-200 dark:hover:file:bg-white/15"
         />
         <input type="hidden" name="payment_qr_url" value={paymentQrUrl ?? ''} />
-        <p className="mt-1 text-xs text-slate-500">
+        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
           {paymentQrUrl
             ? 'Shown to friends when they choose to pay you by QR code during settle-up.'
             : 'Add your InstaPay, GCash, or bank QR so friends can scan it to pay you back.'}
