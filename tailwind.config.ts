@@ -14,6 +14,7 @@ export default {
         paper: '#eef2ee',
         receipt: '#fbfbf8',
         ink: '#10241c',
+        night: '#07130e',
       },
       fontFamily: {
         sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
