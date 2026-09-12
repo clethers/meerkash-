@@ -135,6 +135,106 @@ export const getGroupBundle = cache(async (groupId: string): Promise<GroupBundle
   };
 });
 
+/**
+ * The part of a group page every tab needs: group row, membership, role,
+ * and the roster with profiles. No expense/settlement fetch, no ledger
+ * computation — those are getGroupLedger's job, for the two tabs that
+ * actually show balances.
+ * Returns null under the same conditions getGroupBundle does: group
+ * missing/deleted, or the viewer isn't an active member.
+ */
+export interface GroupCore {
+  group: Group;
+  me: Profile;
+  myRole: 'owner' | 'member';
+  members: MemberWithProfile[];
+  activeMembers: MemberWithProfile[];
+  nameOf: (userId: string) => string;
+}
+
+export const getGroupCore = cache(async (groupId: string): Promise<GroupCore | null> => {
+  const supabase = await createClient();
+
+  const [me, groupResult, memberResult] = await Promise.all([
+    getCurrentUser(),
+    supabase.from('groups').select('*').eq('id', groupId).is('deleted_at', null).maybeSingle(),
+    supabase
+      .from('group_members')
+      .select('*, profile:profiles!group_members_user_id_fkey(*)')
+      .eq('group_id', groupId)
+      .order('joined_at', { ascending: true }),
+  ]);
+
+  if (!me) return null;
+  const group = groupResult.data;
+  if (!group) return null;
+
+  const members = (memberResult.data ?? []) as unknown as MemberWithProfile[];
+  const mine = members.find((m) => m.user_id === me.id && m.status === 'active');
+  if (!mine) return null;
+
+  const activeMembers = members.filter((m) => m.status === 'active');
+  const names = new Map(members.map((m) => [m.user_id, m.profile?.display_name ?? 'Member']));
+
+  return {
+    group: group as Group,
+    me,
+    myRole: mine.role,
+    members,
+    activeMembers,
+    nameOf: (userId: string) => names.get(userId) ?? 'Former member',
+  };
+});
+
+/**
+ * Expenses, settlements, and the computed ledger — only for tabs that show
+ * balances (Overview, Members). Rows capped like getActivity's limit.
+ * Expenses deliberately keep deleted rows: ExpenseFilters' "show deleted"
+ * toggle needs them. Settlements are filtered to non-deleted server-side —
+ * nothing in the app reads a deleted settlement.
+ * Assumes the caller already confirmed membership (via getGroupCore / the
+ * [groupId] layout) — no independent not-found case.
+ */
+export interface GroupLedgerData {
+  expenses: ExpenseWithDetail[];
+  settlements: Settlement[];
+  ledger: Ledger;
+}
+
+const MAX_LEDGER_ROWS = 500;
+
+export const getGroupLedger = cache(async (groupId: string): Promise<GroupLedgerData> => {
+  const supabase = await createClient();
+
+  const [core, expenseResult, settlementResult] = await Promise.all([
+    getGroupCore(groupId),
+    supabase
+      .from('expenses')
+      .select('*, participants:expense_participants(*)')
+      .eq('group_id', groupId)
+      .order('created_at', { ascending: false })
+      .limit(MAX_LEDGER_ROWS),
+    supabase
+      .from('settlements')
+      .select('*')
+      .eq('group_id', groupId)
+      .is('deleted_at', null)
+      .order('created_at', { ascending: false })
+      .limit(MAX_LEDGER_ROWS),
+  ]);
+
+  const expenses = (expenseResult.data ?? []) as unknown as ExpenseWithDetail[];
+  const settlements = (settlementResult.data ?? []) as Settlement[];
+
+  const ledger = buildLedger({
+    members: (core?.activeMembers ?? []).map((m) => m.user_id),
+    expenses: expenses.map(toExpenseInput),
+    settlements: settlements.map(toSettlementInput),
+  });
+
+  return { expenses, settlements, ledger };
+});
+
 export function toExpenseInput(expense: ExpenseWithDetail): ExpenseInput {
   return {
     id: expense.id,
