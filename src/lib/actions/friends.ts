@@ -6,6 +6,7 @@ import { getFriendBundle } from '@/lib/data/friends';
 import { toSettlementInput } from '@/lib/data/groups';
 import { computeShares, validateSettlement, type ExpenseInput } from '@/lib/balance';
 import { formatPHP, toCentavos } from '@/lib/money';
+import type { PaymentMethod } from '@/types/db';
 import { fail, notify, ok, readableError, type ActionResult } from './shared';
 
 export async function sendFriendRequest(_prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
@@ -133,6 +134,7 @@ export async function createDirectSettlement(
   formData: FormData,
 ): Promise<ActionResult> {
   const friendId = String(formData.get('friend_id') ?? '');
+  const method = (String(formData.get('method') ?? 'unspecified') as PaymentMethod);
   if (!friendId) return fail('Missing friend.');
 
   let amount: number;
@@ -156,6 +158,7 @@ export async function createDirectSettlement(
     from_user_id: bundle.me.id,
     to_user_id: friendId,
     amount_centavos: amount,
+    method,
     status: 'pending',
   });
   if (error) return fail(readableError(error, 'Could not record that payment.'));

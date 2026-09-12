@@ -5,11 +5,11 @@ import { useActionState, useEffect, useMemo, useState } from 'react';
 import { createSettlement } from '@/lib/actions/settlements';
 import type { ActionResult } from '@/lib/actions/shared';
 import { formatMoney, toCentavos, toPesoInput } from '@/lib/money';
-import { PAYMENT_METHODS } from '@/lib/constants';
 import { Alert } from '@/components/ui/Alert';
 import { Avatar } from '@/components/ui/Avatar';
 import { SubmitButton } from '@/components/ui/SubmitButton';
-import { PaymentAppButton } from './PaymentAppButton';
+import { PaymentMethodToggle } from './PaymentMethodToggle';
+import { PaymentQrCode } from './PaymentQrCode';
 import type { CurrencyCode } from '@/types/db';
 
 /**
@@ -24,13 +24,14 @@ export function SettleForm({
   currency,
 }: {
   groupId: string;
-  recipient: { id: string; name: string; avatarUrl: string | null };
+  recipient: { id: string; name: string; avatarUrl: string | null; qrUrl: string | null };
   maxCentavos: number;
   currency: CurrencyCode;
 }) {
   const router = useRouter();
   const [state, action] = useActionState<ActionResult | null, FormData>(createSettlement, null);
   const [amount, setAmount] = useState(toPesoInput(maxCentavos));
+  const [method, setMethod] = useState<'cash' | 'qr_code'>('cash');
 
   useEffect(() => {
     if (state?.ok && state.redirectTo) {
@@ -94,25 +95,22 @@ export function SettleForm({
           ) : null}
         </div>
 
-        <div className="mt-5 flex flex-wrap items-center gap-2">
-          <span className="text-sm text-slate-600">Pay them, then record it here:</span>
-          <PaymentAppButton method="gcash" />
-          <PaymentAppButton method="maya" />
+        <div className="mt-5">
+          <label className="label">How did you pay?</label>
+          <input type="hidden" name="method" value={method} />
+          <div className="mt-1.5">
+            <PaymentMethodToggle value={method} onChange={setMethod} />
+          </div>
+          {method === 'qr_code' ? (
+            <div className="mt-3">
+              <PaymentQrCode qrUrl={recipient.qrUrl} name={recipient.name} />
+            </div>
+          ) : null}
         </div>
 
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <div>
-            <label className="label" htmlFor="method">How did you pay?</label>
-            <select id="method" name="method" className="input mt-1.5" defaultValue="unspecified">
-              {PAYMENT_METHODS.map((m) => (
-                <option key={m.value} value={m.value}>{m.label}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="label" htmlFor="note">Note (optional)</label>
-            <input id="note" name="note" className="input mt-1.5" placeholder="Dinner reimbursement" maxLength={200} />
-          </div>
+        <div className="mt-4">
+          <label className="label" htmlFor="note">Note (optional)</label>
+          <input id="note" name="note" className="input mt-1.5" placeholder="Dinner reimbursement" maxLength={200} />
         </div>
 
         <div className="mt-4">

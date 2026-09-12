@@ -46,6 +46,7 @@ export default async function SettleWithPersonPage({
           id: userId,
           name: member.profile?.display_name ?? 'Member',
           avatarUrl: member.profile?.avatar_url ?? null,
+          qrUrl: member.profile?.payment_qr_url ?? null,
         }}
         currency={bundle.group.currency}
       />

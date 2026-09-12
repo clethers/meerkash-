@@ -171,6 +171,90 @@ export async function createExpense(_prev: ActionResult | null, formData: FormDa
   return ok({ expenseId: expense.id }, `/groups/${groupId}`);
 }
 
+/**
+ * Nav bar's quick-add: just an amount, a group and a name. Splits equally
+ * among every active member with the current user as payer — the full
+ * expense form (payer choice, custom splits, category, receipt) is one tap
+ * away from the created expense if any of that needs adjusting.
+ */
+export async function quickAddExpense(
+  groupId: string, description: string, amountInput: string,
+): Promise<ActionResult> {
+  const trimmedDescription = description.trim();
+  if (trimmedDescription.length < 1) return fail('Give the expense a name.');
+  if (trimmedDescription.length > 120) return fail('That name is too long.');
+
+  let amount: number;
+  try {
+    amount = toCentavos(amountInput);
+  } catch {
+    return fail('Enter a valid peso amount.');
+  }
+  if (amount <= 0) return fail('The amount must be more than ₱0.');
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return fail('You are not signed in.');
+
+  const { data: memberRows } = await supabase
+    .from('group_members')
+    .select('user_id')
+    .eq('group_id', groupId)
+    .eq('status', 'active');
+
+  const participants = (memberRows ?? []).map((r) => r.user_id as string);
+  if (!participants.includes(user.id)) return fail('You are not a member of that group.');
+
+  const { data: groupRow } = await supabase.from('groups').select('currency').eq('id', groupId).maybeSingle();
+  const currency = groupRow?.currency ?? 'PHP';
+
+  const shares = computeShares({
+    id: 'draft', payerId: user.id, amount, participants, splitMode: 'equal',
+  });
+
+  const { data: expense, error } = await supabase
+    .from('expenses')
+    .insert({
+      group_id: groupId,
+      description: trimmedDescription,
+      amount_centavos: amount,
+      payer_id: user.id,
+      category: 'other',
+      split_mode: 'equal',
+      created_by: user.id,
+    })
+    .select('id')
+    .single();
+
+  if (error || !expense) return fail(readableError(error, 'Could not save the expense.'));
+
+  const { error: partError } = await supabase.from('expense_participants').insert(
+    Object.entries(shares).map(([user_id, share_centavos]) => ({
+      expense_id: expense.id, user_id, share_centavos,
+    })),
+  );
+  if (partError) return fail(readableError(partError, 'Could not save the split.'));
+
+  await logActivity(supabase, {
+    groupId, actorId: user.id, action: 'expense.created',
+    subjectType: 'expense', subjectId: expense.id,
+    metadata: { description: trimmedDescription, amount_centavos: amount },
+  });
+
+  await notify(supabase, {
+    recipients: participants,
+    exclude: user.id,
+    groupId,
+    type: 'expense.created',
+    title: `New expense: ${trimmedDescription}`,
+    body: `${formatMoney(amount, currency)} — your balance changed.`,
+    link: `/groups/${groupId}/expenses/${expense.id}`,
+  });
+
+  revalidatePath(`/groups/${groupId}`);
+  return ok({ expenseId: expense.id }, `/groups/${groupId}`);
+}
+
 /** Requirement 13: edits keep the old values and tell the people affected. */
 export async function updateExpense(_prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
   const groupId = String(formData.get('group_id') ?? '');

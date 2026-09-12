@@ -19,7 +19,7 @@ export type ExpenseCategory =
   | 'food_dining' | 'groceries' | 'transportation' | 'rent_utilities'
   | 'travel' | 'entertainment' | 'shopping' | 'work' | 'other';
 export type SettlementStatusDb = 'pending' | 'confirmed' | 'rejected';
-export type PaymentMethod = 'gcash' | 'maya' | 'bank_transfer' | 'cash' | 'other' | 'unspecified';
+export type PaymentMethod = 'gcash' | 'maya' | 'bank_transfer' | 'cash' | 'other' | 'unspecified' | 'qr_code';
 export type Recurrence = 'daily' | 'weekly' | 'monthly' | 'yearly';
 export type FriendRequestStatus = 'pending' | 'accepted' | 'declined';
 
@@ -45,6 +45,7 @@ export interface Profile {
   avatar_url: string | null;
   email: string | null;
   preferred_currency: CurrencyCode | null;
+  payment_qr_url: string | null;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;

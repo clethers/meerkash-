@@ -3,8 +3,9 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
-import { Bell, UserRound, Users } from 'lucide-react';
+import { Bell, Search, UserRound, Users } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
+import { GlobalSearchOverlay } from '@/components/search/GlobalSearchOverlay';
 import { cn } from '@/lib/utils';
 
 const GLASS =
@@ -24,6 +25,7 @@ export function AppDockClient({
 }) {
   const pathname = usePathname();
   const [shrunk, setShrunk] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const lastY = useRef(0);
   const ticking = useRef(false);
 
@@ -78,7 +80,9 @@ export function AppDockClient({
               href={href}
               aria-label={badge > 0 ? `${label}, ${badge} new` : label}
               className={cn(
-                'relative flex h-11 w-11 items-center justify-center rounded-full transition-colors',
+                'relative flex h-11 w-11 items-center justify-center rounded-full',
+                'transition-[color,background-color,transform] duration-200 ease-out',
+                'hover:scale-110 active:scale-95 motion-reduce:hover:scale-100',
                 active ? 'bg-brand-500 text-white' : 'text-slate-600 hover:bg-white/50',
               )}
             >
@@ -90,17 +94,33 @@ export function AppDockClient({
           );
         })}
 
+        <button
+          onClick={() => setSearchOpen(true)}
+          aria-label="Search"
+          className={cn(
+            'flex h-11 w-11 items-center justify-center rounded-full text-slate-600',
+            'transition-[color,background-color,transform] duration-200 ease-out',
+            'hover:scale-110 hover:bg-white/50 active:scale-95 motion-reduce:hover:scale-100',
+          )}
+        >
+          <Search size={20} />
+        </button>
+
         <Link
           href="/settings"
           aria-label="Your account"
           className={cn(
-            'flex h-11 w-11 items-center justify-center rounded-full transition-shadow',
+            'flex h-11 w-11 items-center justify-center rounded-full',
+            'transition-[box-shadow,transform] duration-200 ease-out',
+            'hover:scale-110 active:scale-95 motion-reduce:hover:scale-100',
             pathname.startsWith('/settings') && 'ring-2 ring-brand-500',
           )}
         >
           <Avatar name={avatarName} src={avatarUrl} size={30} />
         </Link>
       </nav>
+
+      {searchOpen ? <GlobalSearchOverlay onClose={() => setSearchOpen(false)} /> : null}
     </div>
   );
 }

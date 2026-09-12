@@ -150,6 +150,26 @@ export function toSettlementInput(settlement: Settlement): SettlementInput {
   };
 }
 
+/**
+ * Just the group list (name/avatar), no balance or member-count round-trips
+ * — for callers like the nav's add-expense picker that render on every page
+ * and only need something to link to, not the full groups-page summary.
+ */
+export async function getMyGroupsList(): Promise<Group[]> {
+  const supabase = await createClient();
+  const me = await getCurrentUser();
+  if (!me) return [];
+
+  const { data } = await supabase
+    .from('group_members')
+    .select('group:groups(*)')
+    .eq('user_id', me.id)
+    .eq('status', 'active');
+
+  const rows = (data ?? []) as unknown as Array<{ group: Group | null }>;
+  return rows.map((r) => r.group).filter((g): g is Group => Boolean(g) && !g!.deleted_at);
+}
+
 export async function getMyGroups() {
   const supabase = await createClient();
   const me = await getCurrentUser();

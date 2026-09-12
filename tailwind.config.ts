@@ -1,6 +1,7 @@
 import type { Config } from 'tailwindcss';
 
 export default {
+  darkMode: 'class',
   content: ['./src/**/*.{ts,tsx}'],
   theme: {
     extend: {
@@ -14,7 +15,10 @@ export default {
         receipt: '#fbfbf8',
         ink: '#10241c',
       },
-      fontFamily: { sans: ['var(--font-sans)', 'system-ui', 'sans-serif'] },
+      fontFamily: {
+        sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
+        display: ['var(--font-display)', 'system-ui', 'sans-serif'],
+      },
     },
   },
   plugins: [],

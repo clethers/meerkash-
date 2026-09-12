@@ -11,3 +11,4 @@ loop/.gate-state.json
 .env.test.local
 .claude/settings.local.json
 supabase/.temp/
+scripts/.dashboard-dummy-data.json

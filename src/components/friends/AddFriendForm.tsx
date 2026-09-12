@@ -31,7 +31,7 @@ export function AddFriendForm() {
           className="input"
           placeholder="friend@example.com"
         />
-        <SubmitButton pendingLabel="Sending…">
+        <SubmitButton pendingLabel="Sending…" className="shrink-0 whitespace-nowrap">
           <UserPlus size={16} /> Send request
         </SubmitButton>
       </div>

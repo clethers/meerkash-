@@ -13,6 +13,7 @@ import {
 import type { ActionResult } from '@/lib/actions/shared';
 import { Alert } from '@/components/ui/Alert';
 import { SubmitButton } from '@/components/ui/SubmitButton';
+import { OtpTokenInput } from './OtpTokenInput';
 import { PasswordField } from './PasswordField';
 import { UsernameField } from './UsernameField';
 import { suggestEmailCorrection } from '@/lib/signup/emailSuggest';
@@ -110,19 +111,9 @@ function OtpCodeStep({
         <input type="hidden" name="email" value={email} />
         <input type="hidden" name="next" value={next} />
         <div>
-          <label className="label" htmlFor="otp-token">6-digit code</label>
+          <label className="label">6-digit code</label>
           <p className="mt-1 text-sm text-slate-600">Sent to {email}.</p>
-          <input
-            id="otp-token"
-            name="token"
-            type="text"
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            pattern="\d{6}"
-            maxLength={6}
-            required
-            className="input mt-1.5 tracking-[0.3em]"
-          />
+          <OtpTokenInput />
         </div>
         {verifyState?.error ? <Alert tone="error">{verifyState.error}</Alert> : null}
         <SubmitButton className="w-full" pendingLabel="Verifying…">Verify and continue</SubmitButton>

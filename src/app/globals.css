@@ -8,6 +8,14 @@
 
 html { -webkit-text-size-adjust: 100%; }
 
+html, body {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* old Edge */
+}
+html::-webkit-scrollbar, body::-webkit-scrollbar {
+  display: none; /* Chrome/Safari — scroll still works, just no visible track */
+}
+
 body {
   @apply bg-paper text-slate-900 antialiased;
 }

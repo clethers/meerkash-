@@ -3,7 +3,7 @@
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
-import { uploadAvatar } from '@/lib/storage';
+import { uploadAvatar, uploadPaymentQr } from '@/lib/storage';
 import { CURRENCY_CODES } from '@/lib/constants';
 import type { CurrencyCode } from '@/types/db';
 import { fail, ok, readableError, type ActionResult } from './shared';
@@ -71,10 +71,10 @@ export async function signUpWithEmail(_prev: ActionResult | null, formData: Form
 
 /**
  * OTP-based signup, step 1: collect name/email/username (no password), send
- * a 6-digit code. Verification reuses `verifyEmailOtp` below — Supabase
- * treats "verify a code for an email that doesn't have an account yet" and
- * "verify a code for an existing account" identically once the code is
- * requested with `shouldCreateUser: true`.
+ * a 6-digit code. Checks email_has_account() first — without it, signing up
+ * with an email that already has a confirmed account would silently log
+ * that person in instead, discarding the name/username they just typed with
+ * no explanation. Verification reuses `verifyEmailOtp` below.
  */
 export async function requestSignupOtp(_prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
   const name = String(formData.get('name') ?? '').trim();
@@ -86,6 +86,10 @@ export async function requestSignupOtp(_prev: ActionResult | null, formData: For
   if (!email.includes('@')) return fail('Please enter a valid email address.');
 
   const supabase = await createClient();
+
+  const { data: alreadyRegistered, error: lookupError } = await supabase.rpc('email_has_account', { check_email: email });
+  if (lookupError) return fail(readableError(lookupError, 'Could not verify that email. Please try again.'));
+  if (alreadyRegistered) return fail('An account with that email already exists. Try signing in instead.');
 
   const usernameCheck = await validateSignupUsername(supabase, username);
   if (usernameCheck.error) return fail(usernameCheck.error);
@@ -124,9 +128,14 @@ export async function requestEmailOtp(_prev: ActionResult | null, formData: Form
   if (!email.includes('@')) return fail('Please enter a valid email address.');
 
   const supabase = await createClient();
+
+  const { data: registered, error: lookupError } = await supabase.rpc('email_has_account', { check_email: email });
+  if (lookupError) return fail(readableError(lookupError, 'Could not verify that email. Please try again.'));
+  if (!registered) return fail('No account found for that email. Create an account instead?');
+
   const { error } = await supabase.auth.signInWithOtp({
     email,
-    options: { shouldCreateUser: true },
+    options: { shouldCreateUser: false },
   });
 
   if (error) return fail(readableError(error, 'We could not send a code. Please try again.'));
@@ -142,8 +151,12 @@ export async function verifyEmailOtp(_prev: ActionResult | null, formData: FormD
   if (!/^\d{6}$/.test(token)) return fail('Enter the 6-digit code from your email.');
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.verifyOtp({ email, token, type: 'email' });
+  const { data, error } = await supabase.auth.verifyOtp({ email, token, type: 'email' });
+  console.log('[DEBUG verifyEmailOtp] error:', error, 'session:', !!data?.session, 'user:', data?.user?.id);
   if (error) return fail(readableError(error, 'That code is invalid or has expired.'));
+
+  const { data: check } = await supabase.auth.getUser();
+  console.log('[DEBUG verifyEmailOtp] getUser after verify:', check?.user?.id);
 
   revalidatePath('/', 'layout');
   return ok(undefined, next.startsWith('/') ? next : '/groups');
@@ -174,6 +187,7 @@ export async function signOut(): Promise<void> {
 export async function updateProfile(_prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
   const name = String(formData.get('display_name') ?? '').trim();
   let avatarUrl = String(formData.get('avatar_url') ?? '').trim();
+  let paymentQrUrl = String(formData.get('payment_qr_url') ?? '').trim();
   if (name.length < 2) return fail('Please enter a name with at least 2 characters.');
 
   const preferredCurrencyRaw = String(formData.get('preferred_currency') ?? '').trim();
@@ -192,9 +206,18 @@ export async function updateProfile(_prev: ActionResult | null, formData: FormDa
   if (upload && 'error' in upload) return fail(upload.error);
   if (upload) avatarUrl = upload.url;
 
+  const qrUpload = await uploadPaymentQr(supabase, user.id, formData.get('payment_qr') as File | null);
+  if (qrUpload && 'error' in qrUpload) return fail(qrUpload.error);
+  if (qrUpload) paymentQrUrl = qrUpload.url;
+
   const { error } = await supabase
     .from('profiles')
-    .update({ display_name: name, avatar_url: avatarUrl || null, preferred_currency: preferredCurrency })
+    .update({
+      display_name: name,
+      avatar_url: avatarUrl || null,
+      preferred_currency: preferredCurrency,
+      payment_qr_url: paymentQrUrl || null,
+    })
     .eq('id', user.id);
 
   if (error) return fail(readableError(error, 'Could not save your profile.'));

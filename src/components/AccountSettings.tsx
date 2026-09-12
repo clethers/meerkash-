@@ -17,11 +17,13 @@ export function ProfileForm({
   avatarUrl,
   email,
   preferredCurrency,
+  paymentQrUrl,
 }: {
   displayName: string;
   avatarUrl: string | null;
   email: string | null;
   preferredCurrency: CurrencyCode | null;
+  paymentQrUrl: string | null;
 }) {
   const router = useRouter();
   const [state, action] = useActionState<ActionResult | null, FormData>(
@@ -68,6 +70,30 @@ export function ProfileForm({
         <input type="hidden" name="avatar_url" value={avatarUrl ?? ''} />
         <p className="mt-1 text-xs text-slate-500">
           PNG, JPEG, WebP or GIF up to 2 MB. Upload nothing to keep your initials avatar.
+        </p>
+      </div>
+
+      <div>
+        <label className="label" htmlFor="payment_qr">Payment QR code</label>
+        {paymentQrUrl ? (
+          <img
+            src={paymentQrUrl}
+            alt="Your payment QR code"
+            className="mt-1.5 mb-2 h-28 w-28 rounded-lg border border-slate-200 object-contain"
+          />
+        ) : null}
+        <input
+          id="payment_qr"
+          name="payment_qr"
+          type="file"
+          accept="image/png,image/jpeg,image/webp,image/gif"
+          className="mt-1.5 block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-slate-700 hover:file:bg-slate-200"
+        />
+        <input type="hidden" name="payment_qr_url" value={paymentQrUrl ?? ''} />
+        <p className="mt-1 text-xs text-slate-500">
+          {paymentQrUrl
+            ? 'Shown to friends when they choose to pay you by QR code during settle-up.'
+            : 'Add your InstaPay, GCash, or bank QR so friends can scan it to pay you back.'}
         </p>
       </div>
 

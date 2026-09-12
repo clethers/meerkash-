@@ -3,20 +3,44 @@ import { notFound } from 'next/navigation';
 import { ArrowRight, Plus, Wallet } from 'lucide-react';
 import { GroupHeader } from '@/components/groups/GroupHeader';
 import { BalanceSummary } from '@/components/groups/BalanceSummary';
+import { InviteFriendsModal } from '@/components/groups/InviteFriendsModal';
 import { ExpenseFilters } from '@/components/expenses/ExpenseFilters';
 import { ButtonLink } from '@/components/ui/Button';
 import { SectionLabel } from '@/components/ui/SectionLabel';
 import { getGroupBundle } from '@/lib/data/groups';
+import { getMyFriends } from '@/lib/data/friends';
+import { getOrCreateInvite, inviteQrSvg, inviteUrl } from '@/lib/data/invites';
 import { summarizeForUser } from '@/lib/balance';
 import { formatMoney } from '@/lib/money';
 import { relativeTime } from '@/lib/utils';
 
 export const dynamic = 'force-dynamic';
 
-export default async function GroupPage({ params }: { params: Promise<{ groupId: string }> }) {
+export default async function GroupPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ groupId: string }>;
+  searchParams: Promise<{ welcome?: string }>;
+}) {
   const { groupId } = await params;
+  const { welcome } = await searchParams;
   const bundle = await getGroupBundle(groupId);
   if (!bundle) notFound();
+
+  let welcomeInvite: { url: string; qrSvg: string; inviteId: string; friends: typeof bundle.members[number]['profile'][] } | null = null;
+  if (welcome === '1') {
+    const memberIds = new Set(bundle.activeMembers.map((m) => m.user_id));
+    const [friends, invite] = await Promise.all([getMyFriends(), getOrCreateInvite(groupId)]);
+    if (invite) {
+      welcomeInvite = {
+        url: inviteUrl(invite.token),
+        qrSvg: await inviteQrSvg(invite.token),
+        inviteId: invite.id,
+        friends: friends.filter((f) => !memberIds.has(f.profile.id)).map((f) => f.profile),
+      };
+    }
+  }
 
   const summary = summarizeForUser(bundle.ledger, bundle.me.id);
   const avatarOf = (id: string) =>
@@ -29,6 +53,16 @@ export default async function GroupPage({ params }: { params: Promise<{ groupId:
 
   return (
     <div className="space-y-6">
+      {welcomeInvite ? (
+        <InviteFriendsModal
+          groupId={groupId}
+          groupName={bundle.group.name}
+          friends={welcomeInvite.friends}
+          inviteUrl={welcomeInvite.url}
+          qrSvg={welcomeInvite.qrSvg}
+          inviteId={welcomeInvite.inviteId}
+        />
+      ) : null}
       <GroupHeader group={bundle.group} memberCount={bundle.activeMembers.length} />
 
       {pendingForMe.length > 0 ? (

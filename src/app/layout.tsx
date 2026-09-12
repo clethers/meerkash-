@@ -32,6 +32,16 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${inter.variable} ${archivo.variable}`}>
+      <head>
+        {/* Applied before hydration so a stored 'dark' preference doesn't
+            flash light on load once dark: styles exist. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "(function(){try{if(localStorage.getItem('theme')==='dark'){document.documentElement.classList.add('dark');}}catch(e){}})();",
+          }}
+        />
+      </head>
       <body>{supabaseConfigured ? children : <SetupNotice />}</body>
     </html>
   );

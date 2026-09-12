@@ -20,37 +20,24 @@ export const CATEGORY_EMOJI: Record<ExpenseCategory, string> = Object.fromEntrie
   CATEGORIES.map((c) => [c.value, c.emoji]),
 ) as Record<ExpenseCategory, string>;
 
+/**
+ * 'cash' and 'qr_code' are the only choices the settle-up form offers going
+ * forward. The rest stay here only so PAYMENT_METHOD_LABEL can still render
+ * settlements recorded before this list changed.
+ */
 export const PAYMENT_METHODS: Array<{ value: PaymentMethod; label: string }> = [
+  { value: 'cash', label: 'Cash' },
+  { value: 'qr_code', label: 'QR code' },
   { value: 'unspecified', label: 'Not specified' },
   { value: 'gcash', label: 'GCash' },
   { value: 'maya', label: 'Maya' },
   { value: 'bank_transfer', label: 'Bank Transfer' },
-  { value: 'cash', label: 'Cash' },
   { value: 'other', label: 'Other' },
 ];
 
 export const PAYMENT_METHOD_LABEL: Record<PaymentMethod, string> = Object.fromEntries(
   PAYMENT_METHODS.map((m) => [m.value, m.label]),
 ) as Record<PaymentMethod, string>;
-
-/**
- * Neither GCash nor Maya publishes a "pay this specific person this amount"
- * deep link for third-party apps without a merchant partnership — that's a
- * business relationship, not something buildable here. This is the honest
- * scope instead: open the app itself (falling back to its store listing if
- * not installed), so the person finishes the actual payment inside GCash/
- * Maya and comes back to Meerkash's existing settle-up flow to record it.
- */
-export const PAYMENT_APP_LINKS: Partial<Record<PaymentMethod, { scheme: string; storeUrl: string }>> = {
-  gcash: {
-    scheme: 'gcash://',
-    storeUrl: 'https://play.google.com/store/apps/details?id=com.globe.gcash.android',
-  },
-  maya: {
-    scheme: 'maya://',
-    storeUrl: 'https://play.google.com/store/apps/details?id=com.paymaya',
-  },
-};
 
 export const CURRENCIES: Array<{ value: CurrencyCode; label: string }> = [
   { value: 'PHP', label: 'Philippine Peso' },

@@ -11,6 +11,7 @@ function friend(id: string, netCentavos: number): { profile: Profile; netCentavo
       avatar_url: null,
       email: null,
       preferred_currency: null,
+      payment_qr_url: null,
       created_at: '',
       updated_at: '',
       deleted_at: null,

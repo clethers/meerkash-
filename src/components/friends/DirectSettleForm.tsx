@@ -5,26 +5,29 @@ import { useActionState, useEffect, useMemo, useState } from 'react';
 import { createDirectSettlement } from '@/lib/actions/friends';
 import type { ActionResult } from '@/lib/actions/shared';
 import { formatPHP, toCentavos, toPesoInput } from '@/lib/money';
-import { PAYMENT_METHODS } from '@/lib/constants';
 import { Alert } from '@/components/ui/Alert';
 import { Avatar } from '@/components/ui/Avatar';
 import { SubmitButton } from '@/components/ui/SubmitButton';
-import { PaymentAppButton } from '@/components/settlements/PaymentAppButton';
+import { PaymentMethodToggle } from '@/components/settlements/PaymentMethodToggle';
+import { PaymentQrCode } from '@/components/settlements/PaymentQrCode';
 
 export function DirectSettleForm({
   friendId,
   friendName,
   friendAvatarUrl,
+  friendQrUrl,
   maxCentavos,
 }: {
   friendId: string;
   friendName: string;
   friendAvatarUrl: string | null;
+  friendQrUrl: string | null;
   maxCentavos: number;
 }) {
   const router = useRouter();
   const [state, action] = useActionState<ActionResult | null, FormData>(createDirectSettlement, null);
   const [amount, setAmount] = useState(toPesoInput(maxCentavos));
+  const [method, setMethod] = useState<'cash' | 'qr_code'>('cash');
 
   useEffect(() => {
     if (state?.ok && state.redirectTo) {
@@ -82,10 +85,17 @@ export function DirectSettleForm({
           ) : null}
         </div>
 
-        <div className="mt-5 flex flex-wrap items-center gap-2">
-          <span className="text-sm text-slate-600">Pay them, then record it here:</span>
-          <PaymentAppButton method="gcash" />
-          <PaymentAppButton method="maya" />
+        <div className="mt-5">
+          <label className="label">How did you pay?</label>
+          <input type="hidden" name="method" value={method} />
+          <div className="mt-1.5">
+            <PaymentMethodToggle value={method} onChange={setMethod} />
+          </div>
+          {method === 'qr_code' ? (
+            <div className="mt-3">
+              <PaymentQrCode qrUrl={friendQrUrl} name={friendName} />
+            </div>
+          ) : null}
         </div>
       </div>
 

@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { getGroupBundle } from '@/lib/data/groups';
+import { getOrCreateInvite } from '@/lib/data/invites';
 import { canLeaveGroup } from '@/lib/balance';
 import { suggestGroupName } from '@/lib/utils';
 import { uploadAvatar } from '@/lib/storage';
@@ -48,7 +49,38 @@ export async function createGroup(_prev: ActionResult | null, formData: FormData
   });
 
   revalidatePath('/groups');
-  return ok({ groupId: group.id }, `/groups/${group.id}`);
+  return ok({ groupId: group.id }, `/groups/${group.id}?welcome=1`);
+}
+
+/**
+ * Notifies a friend with the group's invite link. Reuses the same
+ * accept-invite flow as the shareable link/QR — group_members RLS only
+ * allows inserts through accept_invite(), so this never adds them directly,
+ * it just gets the invite in front of them without them having to ask for it.
+ */
+export async function inviteFriendToGroup(groupId: string, friendUserId: string): Promise<ActionResult> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return fail('You are not signed in.');
+
+  const invite = await getOrCreateInvite(groupId);
+  if (!invite) return fail('Could not create an invite link for this group.');
+
+  const [{ data: group }, { data: inviter }] = await Promise.all([
+    supabase.from('groups').select('name').eq('id', groupId).maybeSingle(),
+    supabase.from('profiles').select('display_name').eq('id', user.id).maybeSingle(),
+  ]);
+
+  const { error } = await supabase.from('notifications').insert({
+    user_id: friendUserId,
+    group_id: groupId,
+    type: 'group.invited',
+    title: `${inviter?.display_name ?? 'Someone'} invited you to "${group?.name ?? 'a group'}"`,
+    link: `/join/${invite.token}`,
+  });
+
+  if (error) return fail(readableError(error, 'Could not send the invite.'));
+  return ok();
 }
 
 export async function updateGroup(_prev: ActionResult | null, formData: FormData): Promise<ActionResult> {

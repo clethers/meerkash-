@@ -36,6 +36,7 @@ export default async function SettleWithFriendPage({
         friendId={friendId}
         friendName={bundle.friend.display_name}
         friendAvatarUrl={bundle.friend.avatar_url}
+        friendQrUrl={bundle.friend.payment_qr_url}
         maxCentavos={max}
       />
     </div>

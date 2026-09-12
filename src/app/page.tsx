@@ -1,13 +1,22 @@
 import { redirect } from 'next/navigation';
+import { headers } from 'next/headers';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Check } from 'lucide-react';
 import { getCurrentUser } from '@/lib/data/groups';
 import styles from './landing.module.css';
 
+// Phone UAs only — iPad and other tablets keep the marketing page, they have
+// the screen real estate for it. Checked server-side so there's no flash of
+// the marketing hero before a client-side redirect would kick in.
+const MOBILE_UA = /Android|iPhone|iPod|Windows Phone|BlackBerry|IEMobile|Opera Mini/i;
+
 export default async function LandingPage() {
   const user = await getCurrentUser();
   if (user) redirect('/groups');
+
+  const userAgent = (await headers()).get('user-agent') ?? '';
+  if (MOBILE_UA.test(userAgent)) redirect('/login');
 
   return (
     <main className={styles.stage}>

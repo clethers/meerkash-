@@ -1,0 +1,48 @@
+<!--
+  Meerkash — OTP sign-in / sign-up email.
+  Paste into BOTH: Supabase Dashboard → Authentication → Emails → Templates →
+  "Magic link or OTP" AND "Confirm signup" — a brand-new email's first code
+  goes through "Confirm signup", an existing user's later codes go through
+  "Magic link or OTP", so both need this same content.
+  {{ .Token }} is Supabase's code placeholder — keep it exactly as-is.
+  Text wordmark, not the image logo — Supabase Storage sits behind
+  Cloudflare bot-management (blocks Gmail's image proxy), and the base64
+  fallback isn't reliably rendered by Gmail either. Text is the version
+  that actually works everywhere.
+-->
+<div style="background-color:#eef2ee;padding:32px 16px;font-family:Georgia,'Times New Roman',serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:440px;margin:0 auto;">
+    <tr>
+      <td style="padding-bottom:24px;text-align:center;">
+        <span style="font-family:Arial,Helvetica,sans-serif;font-size:22px;font-weight:900;color:#10241c;letter-spacing:-0.02em;">
+          Meer<span style="color:#15825a;">kash</span>
+        </span>
+      </td>
+    </tr>
+    <tr>
+      <td style="background-color:#fbfbf8;border:1px solid rgba(16,36,28,0.12);border-radius:16px;padding:36px 32px;text-align:center;">
+        <p style="margin:0 0 8px;font-family:Arial,Helvetica,sans-serif;font-size:13px;font-weight:600;color:#15825a;letter-spacing:0.02em;">
+          Your sign-in code
+        </p>
+        <p style="margin:0 0 24px;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#3d4b43;">
+          Enter this code to continue to Meerkash. It expires in 10 minutes.
+        </p>
+        <div style="display:inline-block;background-color:#eef2ee;border:1px solid rgba(16,36,28,0.16);border-radius:12px;padding:16px 28px;margin-bottom:24px;">
+          <span style="font-family:'Courier New',Courier,monospace;font-size:32px;font-weight:700;letter-spacing:0.35em;color:#10241c;">
+            {{ .Token }}
+          </span>
+        </div>
+        <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:12.5px;color:#7c8a80;line-height:1.6;">
+          Didn't request this? You can safely ignore this email — no account changes will be made.
+        </p>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding-top:24px;text-align:center;">
+        <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#9aa69d;">
+          Meerkash — because your network covers each other.
+        </p>
+      </td>
+    </tr>
+  </table>
+</div>
