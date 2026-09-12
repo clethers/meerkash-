@@ -8,8 +8,8 @@ type Size = 'sm' | 'md' | 'lg';
 const VARIANTS: Record<Variant, string> = {
   primary: 'bg-brand-600 text-white hover:bg-brand-700 focus-visible:ring-brand-600',
   secondary:
-    'bg-white text-slate-800 border border-slate-300 hover:bg-slate-50 focus-visible:ring-slate-400',
-  ghost: 'text-slate-600 hover:bg-slate-100 focus-visible:ring-slate-400',
+    'bg-white dark:bg-brand-950 text-slate-800 dark:text-slate-100 border border-slate-300 dark:border-white/15 hover:bg-slate-50 dark:hover:bg-white/5 focus-visible:ring-slate-400',
+  ghost: 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 focus-visible:ring-slate-400',
   danger: 'bg-rose-600 text-white hover:bg-rose-700 focus-visible:ring-rose-600',
 };
 

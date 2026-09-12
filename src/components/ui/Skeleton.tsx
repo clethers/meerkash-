@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
 
 export function Skeleton({ className }: { className?: string }) {
-  return <div aria-hidden className={cn('animate-pulse rounded-md bg-slate-200', className)} />;
+  return <div aria-hidden className={cn('animate-pulse rounded-md bg-slate-200 dark:bg-white/10', className)} />;
 }
 
 /** A "label + input" row — the shape shared by nearly every form page. */
@@ -29,7 +29,7 @@ export function SkeletonRows({
   avatarClassName?: string;
 }) {
   return (
-    <ul className="card divide-y divide-slate-100 overflow-hidden">
+    <ul className="card divide-y divide-slate-100 dark:divide-white/10 overflow-hidden">
       {Array.from({ length: count }).map((_, i) => (
         <li key={i} className="flex items-center gap-4 p-4">
           <Skeleton className={cn('shrink-0 rounded-full', avatarClassName)} />
