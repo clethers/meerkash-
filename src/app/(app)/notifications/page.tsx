@@ -10,8 +10,8 @@ export default async function NotificationsPage() {
   return (
     <div className="flex flex-1 flex-col space-y-5">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Notifications</h1>
-        <p className="mt-1 text-sm text-slate-600">
+        <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-50">Notifications</h1>
+        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
           Only things that affect your balance, your expenses or your access to a group.
         </p>
       </div>

@@ -18,8 +18,8 @@ export function AddFriendForm() {
   return (
     <form ref={formRef} action={action} className="card space-y-3 p-5">
       <div>
-        <p className="font-medium text-slate-900">Add a friend</p>
-        <p className="mt-1 text-sm text-slate-600">
+        <p className="font-medium text-slate-900 dark:text-slate-50">Add a friend</p>
+        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
           They need a Meerkash account already — enter the email they signed up with.
         </p>
       </div>
