@@ -40,7 +40,7 @@
   | `border-slate-200` | `dark:border-white/10` |
   | `border-slate-300` | `dark:border-white/15` |
   | `bg-slate-50` | `dark:bg-white/5` |
-  | `bg-slate-100` | `dark:bg-white/8` |
+  | `bg-slate-100` | `dark:bg-white/10` (Tailwind's `/N` opacity modifier only accepts multiples of 5 — `/8`, `/12`, `/6` etc. silently generate no CSS; found and fixed mid-plan, see ledger) |
   | `bg-slate-200` | `dark:bg-white/10` |
   | `bg-white` (solid, opaque surface) | `dark:bg-brand-950` |
   | `text-brand-600` / `.money-positive` | `dark:text-brand-400` |
@@ -683,10 +683,10 @@ In both `LoginForm` and `SignupForm`, the tab-toggle track and buttons currently
 Replace with (same pattern in both places — two call sites, `LoginForm` and `SignupForm`):
 
 ```tsx
-<div className="flex rounded-xl bg-slate-100 dark:bg-white/6 p-1 text-sm font-medium">
+<div className="flex rounded-xl bg-slate-100 dark:bg-white/[0.06] p-1 text-sm font-medium">
   <button
     ...
-    className={`flex-1 rounded-lg py-1.5 transition-colors ${mode === 'password' ? 'bg-white dark:bg-white/12 text-slate-900 dark:text-slate-50 shadow-sm' : 'text-slate-600 dark:text-slate-400'}`}
+    className={`flex-1 rounded-lg py-1.5 transition-colors ${mode === 'password' ? 'bg-white dark:bg-white/[0.12] text-slate-900 dark:text-slate-50 shadow-sm' : 'text-slate-600 dark:text-slate-400'}`}
   >
 ```
 
@@ -842,7 +842,7 @@ Replace both row templates' text/strong colors (the `owedToYou` and `youOwe` `.m
 And the row divider:
 
 ```tsx
-<ul className="divide-y divide-slate-100 dark:divide-white/8">
+<ul className="divide-y divide-slate-100 dark:divide-white/10">
 ```
 
 (the `Settle` link's `bg-brand-600 text-white` needs no dark: variant, per the Global Constraints table.)
@@ -878,7 +878,7 @@ function Stat({ label, value }: { label: string; value: string }) {
 Replace the recent-settlements list:
 
 ```tsx
-<ul className="card divide-y divide-slate-100 dark:divide-white/8 overflow-hidden">
+<ul className="card divide-y divide-slate-100 dark:divide-white/10 overflow-hidden">
   {recentSettlements.map((s) => (
     <li key={s.id} className="flex items-center gap-3 px-4 py-3 text-sm">
       <span className="flex-1 text-slate-700 dark:text-slate-300">
@@ -956,7 +956,7 @@ Replace the "Show deleted expenses" checkbox row and the checkbox itself:
 Replace the expenses list wrapper:
 
 ```tsx
-<ul className="card divide-y divide-slate-100 dark:divide-white/8 overflow-hidden">
+<ul className="card divide-y divide-slate-100 dark:divide-white/10 overflow-hidden">
 ```
 
 - [ ] **Step 5: `ExpenseRow.tsx`**
@@ -1037,7 +1037,7 @@ git commit -m "style: dark mode pass for group overview, balance summary, and ex
 Replace the friends list block (currently `<ul className="space-y-2">` of individually-carded `<Link>`s) with a single `.card` and `divide-y` rows:
 
 ```tsx
-<ul className="card divide-y divide-slate-100 dark:divide-white/8 overflow-hidden">
+<ul className="card divide-y divide-slate-100 dark:divide-white/10 overflow-hidden">
   {friends.map(({ profile, netCentavos }) => (
     <li key={profile.id}>
       <Link
@@ -1083,7 +1083,7 @@ Also add `dark:text-slate-50`/`dark:text-slate-300` to the page's own heading bl
 Replace the groups list block with the same pattern (one `.card`, `divide-y` rows):
 
 ```tsx
-<ul className="card divide-y divide-slate-100 dark:divide-white/8 overflow-hidden">
+<ul className="card divide-y divide-slate-100 dark:divide-white/10 overflow-hidden">
   {groups.map(({ group, balance, memberCount }) => (
     <li key={group.id}>
       <Link
@@ -1157,7 +1157,7 @@ Replace the name label and the `settled` ring color:
 Replace the list wrapper and row contents:
 
 ```tsx
-<ul className="card divide-y divide-slate-100 dark:divide-white/8 overflow-hidden">
+<ul className="card divide-y divide-slate-100 dark:divide-white/10 overflow-hidden">
   {entries.map((entry) => {
     const nameOf = (id: string) =>
       id === entry.actor_id ? (entry.actor?.display_name ?? 'Someone') : 'Someone';
@@ -1190,7 +1190,7 @@ Replace the list wrapper and row contents:
 Replace the list wrapper and row body:
 
 ```tsx
-<ul className="card divide-y divide-slate-100 dark:divide-white/8 overflow-hidden">
+<ul className="card divide-y divide-slate-100 dark:divide-white/10 overflow-hidden">
   {notifications.map((notification) => {
     const body = (
       <div className={`px-4 py-3 ${notification.read_at ? '' : 'bg-brand-50/60 dark:bg-brand-500/10'}`}>
@@ -1430,7 +1430,7 @@ Replace `CategoryBarChart`'s label and track/fill:
   role="img"
   aria-label={`${CATEGORY_LABEL[d.category]}: ${formatMoney(d.total, currency)}`}
 >
-  <rect x="0" y="0" width="100" height="10" rx="5" className="fill-slate-100 dark:fill-white/8" />
+  <rect x="0" y="0" width="100" height="10" rx="5" className="fill-slate-100 dark:fill-white/10" />
   <rect x="0" y="0" width={(d.total / max) * 100} height="10" rx="5" className="fill-brand-500 dark:fill-brand-400" />
 </svg>
 <div className="w-24 shrink-0 text-right text-sm font-medium text-slate-900 dark:text-slate-50">
@@ -1448,7 +1448,7 @@ Replace `MonthBarChart`'s bar fill, axis line, and labels:
   width={barWidth}
   height={height}
   rx="2"
-  className={d.total > 0 ? 'fill-brand-500 dark:fill-brand-400' : 'fill-slate-100 dark:fill-white/8'}
+  className={d.total > 0 ? 'fill-brand-500 dark:fill-brand-400' : 'fill-slate-100 dark:fill-white/10'}
 >
   <title>{`${d.label}: ${formatMoney(d.total, currency)}`}</title>
 </rect>
@@ -1575,7 +1575,7 @@ Replace the header block and empty-friends fallback:
 ```
 
 ```tsx
-<ul className="mt-4 divide-y divide-slate-100 dark:divide-white/8 rounded-xl border border-slate-200 dark:border-white/10">
+<ul className="mt-4 divide-y divide-slate-100 dark:divide-white/10 rounded-xl border border-slate-200 dark:border-white/10">
 ```
 
 ```tsx
@@ -1647,7 +1647,7 @@ Replace the overlay's root and header bar:
           onClick={() => setFilter(key)}
           className={cn(
             'shrink-0 rounded-full px-3 py-1.5 text-sm font-medium transition-colors',
-            filter === key ? 'bg-brand-600 text-white' : 'bg-slate-100 dark:bg-white/8 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/12',
+            filter === key ? 'bg-brand-600 text-white' : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/[0.12]',
           )}
         >
           {label}
@@ -1672,7 +1672,7 @@ function ResultSection({ title, children }: { title: string; children: ReactNode
   return (
     <div>
       <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">{title}</p>
-      <ul className="card divide-y divide-slate-100 dark:divide-white/8 overflow-hidden">{children}</ul>
+      <ul className="card divide-y divide-slate-100 dark:divide-white/10 overflow-hidden">{children}</ul>
     </div>
   );
 }
@@ -1729,7 +1729,7 @@ Replace the `tones` map:
 
 ```ts
 const tones = {
-  info: 'bg-slate-100 dark:bg-white/8 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-white/10',
+  info: 'bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-white/10',
   error: 'bg-rose-50 dark:bg-rose-950/40 text-rose-800 dark:text-rose-200 border-rose-200 dark:border-rose-900/50',
   success: 'bg-brand-50 dark:bg-brand-950/40 text-brand-800 dark:text-brand-200 border-brand-200 dark:border-brand-900/50',
   warning: 'bg-amber-50 dark:bg-amber-950/40 text-amber-900 dark:text-amber-200 border-amber-200 dark:border-amber-900/50',
@@ -1789,7 +1789,7 @@ export function SkeletonRows({
   avatarClassName?: string;
 }) {
   return (
-    <ul className="card divide-y divide-slate-100 dark:divide-white/8 overflow-hidden">
+    <ul className="card divide-y divide-slate-100 dark:divide-white/10 overflow-hidden">
       {Array.from({ length: count }).map((_, i) => (
         <li key={i} className="flex items-center gap-4 p-4">
           <Skeleton className={cn('shrink-0 rounded-full', avatarClassName)} />
