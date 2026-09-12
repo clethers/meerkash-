@@ -1,5 +1,6 @@
 import 'server-only';
 import { cache } from 'react';
+import { headers } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
 import { supabaseConfigured } from '@/lib/env';
 import { buildLedger } from '@/lib/balance';
@@ -38,8 +39,15 @@ export interface GroupBundle {
  * request (including inside getCurrentUser below) reuses this result
  * instead of re-asking.
  */
-export const getAuthUser = cache(async () => {
+export const getAuthUser = cache(async (): Promise<{ id: string } | null> => {
   if (!supabaseConfigured) return null;
+
+  // src/middleware.ts already verified this request's session against the
+  // Auth server and forwards the id here — reuse it instead of paying for a
+  // second getUser() round trip on every navigation.
+  const headerUserId = (await headers()).get('x-user-id');
+  if (headerUserId) return { id: headerUserId };
+
   const supabase = await createClient();
   const {
     data: { user },
