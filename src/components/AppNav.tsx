@@ -9,8 +9,8 @@ export async function AppNav() {
   const [groups, unread] = await Promise.all([getMyGroupsList(), getUnreadCount()]);
 
   return (
-    <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/90 backdrop-blur">
+    <div className="sticky top-3 z-20 mx-auto w-full max-w-4xl px-4">
       <AppNavClient groups={groups} unread={unread} />
-    </header>
+    </div>
   );
 }

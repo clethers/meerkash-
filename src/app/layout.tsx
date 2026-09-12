@@ -31,7 +31,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${archivo.variable}`}>
+    <html lang="en" className={`${inter.variable} ${archivo.variable}`} suppressHydrationWarning>
       <head>
         {/* Applied before hydration so a stored 'dark' preference doesn't
             flash light on load once dark: styles exist. */}

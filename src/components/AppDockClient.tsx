@@ -6,11 +6,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Bell, Search, UserRound, Users } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { GlobalSearchOverlay } from '@/components/search/GlobalSearchOverlay';
+import { GLASS_SURFACE } from '@/lib/ui/glass';
 import { cn } from '@/lib/utils';
-
-const GLASS =
-  'border border-white/60 bg-white/40 backdrop-blur-lg backdrop-saturate-150 ' +
-  'shadow-[0_8px_30px_rgba(31,41,55,0.12),inset_0_1px_0_rgba(255,255,255,0.6)]';
 
 export function AppDockClient({
   avatarName,
@@ -69,7 +66,7 @@ export function AppDockClient({
           'pointer-events-auto flex items-center gap-1 rounded-full px-2.5 py-2',
           'transition-[transform,opacity] duration-300 ease-out motion-reduce:transition-none',
           shrunk ? 'scale-[0.82] opacity-80' : 'scale-100 opacity-100',
-          GLASS,
+          GLASS_SURFACE,
         )}
       >
         {items.map(({ href, label, icon: Icon, badge }) => {
@@ -83,12 +80,12 @@ export function AppDockClient({
                 'relative flex h-11 w-11 items-center justify-center rounded-full',
                 'transition-[color,background-color,transform] duration-200 ease-out',
                 'hover:scale-110 active:scale-95 motion-reduce:hover:scale-100',
-                active ? 'bg-brand-500 text-white' : 'text-slate-600 hover:bg-white/50',
+                active ? 'bg-brand-500 text-white' : 'text-slate-600 hover:bg-white/50 dark:text-slate-300 dark:hover:bg-white/10',
               )}
             >
               <Icon size={20} strokeWidth={active ? 2.4 : 2} />
               {badge > 0 ? (
-                <span className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full bg-rose-500 ring-2 ring-white" />
+                <span className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full bg-rose-500 ring-2 ring-white dark:ring-night" />
               ) : null}
             </Link>
           );
@@ -98,9 +95,9 @@ export function AppDockClient({
           onClick={() => setSearchOpen(true)}
           aria-label="Search"
           className={cn(
-            'flex h-11 w-11 items-center justify-center rounded-full text-slate-600',
+            'flex h-11 w-11 items-center justify-center rounded-full text-slate-600 dark:text-slate-300',
             'transition-[color,background-color,transform] duration-200 ease-out',
-            'hover:scale-110 hover:bg-white/50 active:scale-95 motion-reduce:hover:scale-100',
+            'hover:scale-110 hover:bg-white/50 dark:hover:bg-white/10 active:scale-95 motion-reduce:hover:scale-100',
           )}
         >
           <Search size={20} />
