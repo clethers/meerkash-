@@ -21,11 +21,11 @@ const MESSAGES: Record<UsernameStatus, string | null> = {
 };
 
 const MESSAGE_COLOR: Record<UsernameStatus, string> = {
-  idle: 'text-slate-500',
-  checking: 'text-slate-500',
-  available: 'text-brand-700',
-  taken: 'text-rose-600',
-  invalid: 'text-rose-600',
+  idle: 'text-slate-500 dark:text-slate-400',
+  checking: 'text-slate-500 dark:text-slate-400',
+  available: 'text-brand-700 dark:text-brand-400',
+  taken: 'text-rose-600 dark:text-rose-400',
+  invalid: 'text-rose-600 dark:text-rose-400',
 };
 
 export function UsernameField({
@@ -102,7 +102,7 @@ export function UsernameField({
           {message}
         </p>
       ) : (
-        <p className="mt-1 text-xs text-slate-500">Your unique handle on Meerkash.</p>
+        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Your unique handle on Meerkash.</p>
       )}
     </div>
   );
