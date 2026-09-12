@@ -47,8 +47,8 @@ export function InvitePanel({
   return (
     <div className="card space-y-4 p-5">
       <div>
-        <p className="font-medium text-slate-900">Invite people</p>
-        <p className="mt-1 text-sm text-slate-600">
+        <p className="font-medium text-slate-900 dark:text-slate-50">Invite people</p>
+        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
           Share this link or let them scan the code. They&apos;ll need to accept before they join.
         </p>
       </div>
@@ -85,7 +85,7 @@ export function InvitePanel({
 
       {showQr ? (
         <div
-          className="flex justify-center rounded-xl border border-slate-200 bg-white p-4"
+          className="flex justify-center rounded-xl border border-slate-200 dark:border-white/10 bg-white p-4"
           dangerouslySetInnerHTML={{ __html: qrSvg }}
         />
       ) : null}

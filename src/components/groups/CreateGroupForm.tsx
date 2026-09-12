@@ -38,14 +38,14 @@ export function CreateGroupForm() {
       >
         <div className="flex items-start justify-between">
           <div>
-            <p id="create-group-title" className="font-medium text-slate-900">Create a group</p>
-            <p className="mt-1 text-sm text-slate-600">
+            <p id="create-group-title" className="font-medium text-slate-900 dark:text-slate-50">Create a group</p>
+            <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
               Name it now, or leave it blank and rename it once people join.
             </p>
           </div>
           <button
             onClick={() => setOpen(false)}
-            className="rounded-lg p-1 text-slate-400 hover:bg-slate-100"
+            className="rounded-lg p-1 text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10"
             aria-label="Cancel"
           >
             <X size={18} />
@@ -71,7 +71,7 @@ export function CreateGroupForm() {
                 <option key={c.value} value={c.value}>{c.value} — {c.label}</option>
               ))}
             </select>
-            <p className="mt-1 text-xs text-slate-500">Fixed once the group is created.</p>
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Fixed once the group is created.</p>
           </div>
           {state?.error ? <Alert tone="error">{state.error}</Alert> : null}
           <SubmitButton className="w-full" pendingLabel="Creating…">Create group</SubmitButton>

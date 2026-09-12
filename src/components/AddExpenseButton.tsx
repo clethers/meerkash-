@@ -65,10 +65,10 @@ export function AddExpenseButton({ groups }: { groups: Group[] }) {
             className="card w-full max-w-md rounded-2xl p-5"
           >
             <div className="flex items-start justify-between">
-              <p id="add-expense-title" className="font-medium text-slate-900">Add an expense</p>
+              <p id="add-expense-title" className="font-medium text-slate-900 dark:text-slate-50">Add an expense</p>
               <button
                 onClick={() => setOpen(false)}
-                className="rounded-lg p-1 text-slate-400 hover:bg-slate-100"
+                className="rounded-lg p-1 text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10"
                 aria-label="Cancel"
               >
                 <X size={18} />
@@ -77,7 +77,7 @@ export function AddExpenseButton({ groups }: { groups: Group[] }) {
 
             {groups.length === 0 ? (
               <div className="mt-4 space-y-3">
-                <p className="text-sm text-slate-600">
+                <p className="text-sm text-slate-600 dark:text-slate-300">
                   You don&apos;t have any groups yet — create one first to add an expense.
                 </p>
                 <ButtonLink href="/groups" className="w-full" onClick={() => setOpen(false)}>
@@ -125,7 +125,7 @@ export function AddExpenseButton({ groups }: { groups: Group[] }) {
                     onChange={(event) => setDescription(event.target.value)}
                   />
                 </div>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                   Splits equally among everyone in the group, with you as the payer.
                 </p>
                 {error ? <Alert tone="error">{error}</Alert> : null}

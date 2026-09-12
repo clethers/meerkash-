@@ -55,11 +55,11 @@ export function GlobalSearchOverlay({ onClose }: { onClose: () => void }) {
     results.groups.length + results.friends.length + results.expenses.length + results.activity.length;
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex flex-col bg-white">
-      <div className="border-b border-slate-200 px-4 pb-3 pt-4">
+    <div className="fixed inset-0 z-50 flex flex-col bg-white dark:bg-night">
+      <div className="border-b border-slate-200 dark:border-white/10 px-4 pb-3 pt-4">
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
-            <Search size={18} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search size={18} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
             <input
               autoFocus
               value={query}
@@ -71,7 +71,7 @@ export function GlobalSearchOverlay({ onClose }: { onClose: () => void }) {
           <button
             onClick={onClose}
             aria-label="Close search"
-            className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"
+            className="rounded-lg p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10"
           >
             <X size={20} />
           </button>
@@ -83,7 +83,7 @@ export function GlobalSearchOverlay({ onClose }: { onClose: () => void }) {
               onClick={() => setFilter(key)}
               className={cn(
                 'shrink-0 rounded-full px-3 py-1.5 text-sm font-medium transition-colors',
-                filter === key ? 'bg-brand-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200',
+                filter === key ? 'bg-brand-600 text-white' : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/[0.12]',
               )}
             >
               {label}
@@ -94,13 +94,13 @@ export function GlobalSearchOverlay({ onClose }: { onClose: () => void }) {
 
       <div className="flex-1 overflow-y-auto px-4 py-4">
         {!hasQuery ? (
-          <p className="mt-8 text-center text-sm text-slate-500">
+          <p className="mt-8 text-center text-sm text-slate-500 dark:text-slate-400">
             Search across your groups, friends, expenses and activity.
           </p>
         ) : pending && totalCount === 0 ? (
-          <p className="mt-8 text-center text-sm text-slate-500">Searching…</p>
+          <p className="mt-8 text-center text-sm text-slate-500 dark:text-slate-400">Searching…</p>
         ) : totalCount === 0 ? (
-          <p className="mt-8 text-center text-sm text-slate-500">No results for &quot;{query}&quot;.</p>
+          <p className="mt-8 text-center text-sm text-slate-500 dark:text-slate-400">No results for &quot;{query}&quot;.</p>
         ) : (
           <div className="space-y-6">
             {(filter === 'all' || filter === 'groups') && results.groups.length > 0 ? (
@@ -108,7 +108,7 @@ export function GlobalSearchOverlay({ onClose }: { onClose: () => void }) {
                 {results.groups.map((group) => (
                   <ResultRow key={group.id} href={`/groups/${group.id}`} onNavigate={onClose}>
                     <Avatar name={group.name} src={group.avatar_url} seed={group.avatar_seed} size={36} />
-                    <span className="min-w-0 flex-1 truncate text-sm font-medium text-slate-900">
+                    <span className="min-w-0 flex-1 truncate text-sm font-medium text-slate-900 dark:text-slate-50">
                       {group.name}
                     </span>
                   </ResultRow>
@@ -121,7 +121,7 @@ export function GlobalSearchOverlay({ onClose }: { onClose: () => void }) {
                 {results.friends.map((friend) => (
                   <ResultRow key={friend.id} href={`/friends/${friend.id}`} onNavigate={onClose}>
                     <Avatar name={friend.display_name} src={friend.avatar_url} size={36} />
-                    <span className="min-w-0 flex-1 truncate text-sm font-medium text-slate-900">
+                    <span className="min-w-0 flex-1 truncate text-sm font-medium text-slate-900 dark:text-slate-50">
                       {friend.display_name}
                     </span>
                   </ResultRow>
@@ -137,12 +137,12 @@ export function GlobalSearchOverlay({ onClose }: { onClose: () => void }) {
                     href={`/groups/${expense.group.id}/expenses/${expense.id}`}
                     onNavigate={onClose}
                   >
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-700">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-50 dark:bg-brand-500/15 text-brand-700 dark:text-brand-400">
                       <Receipt size={16} />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium text-slate-900">{expense.description}</p>
-                      <p className="text-xs text-slate-500">
+                      <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-50">{expense.description}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
                         {expense.group.name} · {formatMoney(expense.amount_centavos, expense.group.currency)}
                       </p>
                     </div>
@@ -160,10 +160,10 @@ export function GlobalSearchOverlay({ onClose }: { onClose: () => void }) {
                     <ResultRow key={entry.id} href={`/groups/${entry.group.id}/activity`} onNavigate={onClose}>
                       <Avatar name={entry.actor?.display_name ?? 'Someone'} src={entry.actor?.avatar_url} size={36} />
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm text-slate-800">
+                        <p className="truncate text-sm text-slate-800 dark:text-slate-200">
                           {describeActivity(entry, nameOf, entry.group.currency)}
                         </p>
-                        <p className="text-xs text-slate-500">
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
                           {entry.group.name} · {relativeTime(entry.created_at)}
                         </p>
                       </div>
@@ -183,8 +183,8 @@ export function GlobalSearchOverlay({ onClose }: { onClose: () => void }) {
 function ResultSection({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div>
-      <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400">{title}</p>
-      <ul className="card divide-y divide-slate-100 overflow-hidden">{children}</ul>
+      <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">{title}</p>
+      <ul className="card divide-y divide-slate-100 dark:divide-white/10 overflow-hidden">{children}</ul>
     </div>
   );
 }
@@ -195,7 +195,7 @@ function ResultRow({ href, onNavigate, children }: { href: string; onNavigate: (
       <Link
         href={href}
         onClick={onNavigate}
-        className="flex items-center gap-3 px-3 py-2.5 transition-colors hover:bg-slate-50"
+        className="flex items-center gap-3 px-3 py-2.5 transition-colors hover:bg-slate-50 dark:hover:bg-white/5"
       >
         {children}
       </Link>
