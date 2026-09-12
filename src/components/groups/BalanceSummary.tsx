@@ -50,7 +50,7 @@ export function BalanceSummary({
         </p>
       </div>
 
-      <ul className="divide-y divide-slate-100 dark:divide-white/8">
+      <ul className="divide-y divide-slate-100 dark:divide-white/10">
         {summary.owedToYou.map((line) => (
           <li key={line.userId} className="flex items-center gap-3 px-5 py-3">
             <Avatar name={nameOf(line.userId)} src={avatarOf(line.userId)} size={34} />

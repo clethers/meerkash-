@@ -206,18 +206,18 @@ export function LoginForm({ next }: { next: string }) {
     <div className="space-y-4">
       <GoogleButton next={next} />
       <Divider />
-      <div className="flex rounded-xl bg-slate-100 dark:bg-white/6 p-1 text-sm font-medium">
+      <div className="flex rounded-xl bg-slate-100 dark:bg-white/[0.06] p-1 text-sm font-medium">
         <button
           type="button"
           onClick={() => setMode('password')}
-          className={`flex-1 rounded-lg py-1.5 transition-colors ${mode === 'password' ? 'bg-white dark:bg-white/12 text-slate-900 dark:text-slate-50 shadow-sm' : 'text-slate-600 dark:text-slate-400'}`}
+          className={`flex-1 rounded-lg py-1.5 transition-colors ${mode === 'password' ? 'bg-white dark:bg-white/[0.12] text-slate-900 dark:text-slate-50 shadow-sm' : 'text-slate-600 dark:text-slate-400'}`}
         >
           Password
         </button>
         <button
           type="button"
           onClick={() => setMode('otp')}
-          className={`flex-1 rounded-lg py-1.5 transition-colors ${mode === 'otp' ? 'bg-white dark:bg-white/12 text-slate-900 dark:text-slate-50 shadow-sm' : 'text-slate-600 dark:text-slate-400'}`}
+          className={`flex-1 rounded-lg py-1.5 transition-colors ${mode === 'otp' ? 'bg-white dark:bg-white/[0.12] text-slate-900 dark:text-slate-50 shadow-sm' : 'text-slate-600 dark:text-slate-400'}`}
         >
           Email code
         </button>
@@ -390,18 +390,18 @@ export function SignupForm({ next }: { next: string }) {
     <div className="space-y-4">
       <GoogleButton next={next} />
       <Divider />
-      <div className="flex rounded-xl bg-slate-100 dark:bg-white/6 p-1 text-sm font-medium">
+      <div className="flex rounded-xl bg-slate-100 dark:bg-white/[0.06] p-1 text-sm font-medium">
         <button
           type="button"
           onClick={() => setMode('password')}
-          className={`flex-1 rounded-lg py-1.5 transition-colors ${mode === 'password' ? 'bg-white dark:bg-white/12 text-slate-900 dark:text-slate-50 shadow-sm' : 'text-slate-600 dark:text-slate-400'}`}
+          className={`flex-1 rounded-lg py-1.5 transition-colors ${mode === 'password' ? 'bg-white dark:bg-white/[0.12] text-slate-900 dark:text-slate-50 shadow-sm' : 'text-slate-600 dark:text-slate-400'}`}
         >
           Password
         </button>
         <button
           type="button"
           onClick={() => setMode('otp')}
-          className={`flex-1 rounded-lg py-1.5 transition-colors ${mode === 'otp' ? 'bg-white dark:bg-white/12 text-slate-900 dark:text-slate-50 shadow-sm' : 'text-slate-600 dark:text-slate-400'}`}
+          className={`flex-1 rounded-lg py-1.5 transition-colors ${mode === 'otp' ? 'bg-white dark:bg-white/[0.12] text-slate-900 dark:text-slate-50 shadow-sm' : 'text-slate-600 dark:text-slate-400'}`}
         >
           Email code
         </button>

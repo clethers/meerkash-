@@ -150,7 +150,7 @@ export function ExpenseFilters({
           }
         />
       ) : (
-        <ul className="card divide-y divide-slate-100 dark:divide-white/8 overflow-hidden">
+        <ul className="card divide-y divide-slate-100 dark:divide-white/10 overflow-hidden">
           {filtered.map((expense) => (
             <li key={expense.id}>
               <ExpenseRow

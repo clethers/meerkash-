@@ -126,7 +126,7 @@ export default async function GroupPage({
       {recentSettlements.length > 0 ? (
         <section className="space-y-3">
           <SectionLabel>Recent settlements</SectionLabel>
-          <ul className="card divide-y divide-slate-100 dark:divide-white/8 overflow-hidden">
+          <ul className="card divide-y divide-slate-100 dark:divide-white/10 overflow-hidden">
             {recentSettlements.map((s) => (
               <li key={s.id} className="flex items-center gap-3 px-4 py-3 text-sm">
                 <span className="flex-1 text-slate-700 dark:text-slate-300">
