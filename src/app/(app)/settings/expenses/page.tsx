@@ -24,12 +24,12 @@ export default async function PersonalSpendingPage() {
       <div className="flex items-center gap-2">
         <Link
           href="/settings"
-          className="flex h-9 w-9 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-slate-100"
+          className="flex h-9 w-9 items-center justify-center rounded-full text-slate-500 dark:text-slate-400 transition-colors hover:bg-slate-100 dark:hover:bg-white/10"
           aria-label="Back to your account"
         >
           <ChevronLeft size={18} />
         </Link>
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Your spending</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-50">Your spending</h1>
       </div>
 
       {!hasSpending ? (
@@ -42,9 +42,9 @@ export default async function PersonalSpendingPage() {
       ) : (
         <>
           {overview.convertedTotalAllTime ? (
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-slate-600 dark:text-slate-300">
               ≈{' '}
-              <strong className="font-medium text-slate-900">
+              <strong className="font-medium text-slate-900 dark:text-slate-50">
                 {formatMoney(overview.convertedTotalAllTime.amount, overview.convertedTotalAllTime.currency)}
               </strong>{' '}
               total in {overview.convertedTotalAllTime.currency}
@@ -84,8 +84,8 @@ export default async function PersonalSpendingPage() {
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="card p-4">
-      <p className="text-xs font-medium text-slate-500">{label}</p>
-      <p className="mt-1 text-lg font-semibold text-slate-900">{value}</p>
+      <p className="text-xs font-medium text-slate-500 dark:text-slate-400">{label}</p>
+      <p className="mt-1 text-lg font-semibold text-slate-900 dark:text-slate-50">{value}</p>
     </div>
   );
 }

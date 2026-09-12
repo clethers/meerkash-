@@ -13,20 +13,20 @@ export default async function SettingsPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Your account</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-50">Your account</h1>
         <SignOutButton />
       </div>
 
       <Link
         href="/settings/expenses"
-        className="card flex items-center gap-3 p-4 transition-colors hover:border-brand-300"
+        className="card flex items-center gap-3 p-4 transition-colors hover:border-brand-300 dark:hover:border-brand-500/40"
       >
-        <Receipt size={20} className="shrink-0 text-brand-500" />
+        <Receipt size={20} className="shrink-0 text-brand-500 dark:text-brand-400" />
         <div className="min-w-0 flex-1">
-          <p className="font-medium text-slate-900">Your spending</p>
-          <p className="text-sm text-slate-500">Totals and trends across every group</p>
+          <p className="font-medium text-slate-900 dark:text-slate-50">Your spending</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Totals and trends across every group</p>
         </div>
-        <ChevronRight size={18} className="shrink-0 text-slate-300" />
+        <ChevronRight size={18} className="shrink-0 text-slate-300 dark:text-slate-600" />
       </Link>
 
       <ProfileForm
