@@ -1,0 +1,41 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  background: #eef2ee;
+}
+
+.backdrop::before {
+  content: '';
+  position: absolute;
+  inset: -12%;
+  background:
+    radial-gradient(ellipse 40% 36% at 12% 8%, rgba(255, 154, 122, 0.5), transparent 70%),
+    radial-gradient(ellipse 46% 40% at 90% 14%, rgba(34, 161, 112, 0.46), transparent 72%),
+    radial-gradient(ellipse 48% 42% at 80% 90%, rgba(142, 197, 255, 0.44), transparent 72%),
+    radial-gradient(ellipse 44% 38% at 8% 88%, rgba(255, 209, 102, 0.46), transparent 70%);
+  filter: blur(10px);
+  animation: drift 28s ease-in-out infinite alternate;
+}
+
+/* Dark mode is a `.dark` class on <html> (set by <ThemeToggle>), not OS
+   preference — a plain `:global()` selector, not a media query, so this
+   responds to the same toggle as every Tailwind `dark:` class elsewhere. */
+:global(.dark) .backdrop { background: #07130e; }
+:global(.dark) .backdrop::before {
+  background:
+    radial-gradient(ellipse 38% 32% at 12% 8%, rgba(255, 140, 105, 0.3), transparent 70%),
+    radial-gradient(ellipse 44% 36% at 90% 12%, rgba(48, 201, 143, 0.32), transparent 72%),
+    radial-gradient(ellipse 46% 40% at 82% 90%, rgba(115, 165, 255, 0.26), transparent 72%),
+    radial-gradient(ellipse 40% 36% at 8% 90%, rgba(255, 198, 92, 0.24), transparent 70%);
+}
+
+@keyframes drift {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(-1.2%, 1.2%, 0) scale(1.03); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .backdrop::before { animation: none; }
+}

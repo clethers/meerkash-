@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Check } from 'lucide-react';
 import { getCurrentUser } from '@/lib/data/groups';
+import { AmbientBackdrop } from '@/components/ui/AmbientBackdrop';
 import styles from './landing.module.css';
 
 // Phone UAs only — iPad and other tablets keep the marketing page, they have
@@ -20,6 +21,7 @@ export default async function LandingPage() {
 
   return (
     <main className={styles.stage}>
+      <AmbientBackdrop />
       <nav className={styles.nav}>
         <span className={styles.brand}>
           <Image src="/logo.png" alt="Meerkash" width={139} height={100} priority />

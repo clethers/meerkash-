@@ -33,7 +33,7 @@ body {
     @apply block w-full rounded-xl border border-ink/15 bg-white/55 px-3 py-2.5 text-slate-900
            placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-2
            focus:ring-brand-500/20 disabled:bg-slate-100 disabled:text-slate-500
-           dark:border-white/12 dark:bg-white/6 dark:text-slate-100 dark:placeholder:text-slate-500
+           dark:border-white/[0.12] dark:bg-white/[0.06] dark:text-slate-100 dark:placeholder:text-slate-500
            dark:focus:ring-brand-400/25 dark:disabled:bg-white/5 dark:disabled:text-slate-500;
   }
   .money-positive { @apply text-brand-600 dark:text-brand-400; }

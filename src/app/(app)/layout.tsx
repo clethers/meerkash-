@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { AppNav } from '@/components/AppNav';
 import { AppDock } from '@/components/AppDock';
+import { AmbientBackdrop } from '@/components/ui/AmbientBackdrop';
 import { getAuthUser } from '@/lib/data/groups';
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -12,6 +13,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex min-h-screen flex-col">
+      <AmbientBackdrop />
       <AppNav />
       <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col px-4 pb-28 pt-12">
         {children}
