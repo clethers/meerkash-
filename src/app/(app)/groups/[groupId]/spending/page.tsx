@@ -3,7 +3,7 @@ import { GroupHeader } from '@/components/groups/GroupHeader';
 import { CategoryBarChart, MonthBarChart } from '@/components/groups/SpendingCharts';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { SectionLabel } from '@/components/ui/SectionLabel';
-import { getGroupBundle } from '@/lib/data/groups';
+import { getGroupCore } from '@/lib/data/groups';
 import { getSpendingSummary } from '@/lib/data/spending';
 import { formatMoney } from '@/lib/money';
 
@@ -15,8 +15,8 @@ export default async function SpendingPage({
   params: Promise<{ groupId: string }>;
 }) {
   const { groupId } = await params;
-  const bundle = await getGroupBundle(groupId);
-  if (!bundle) notFound();
+  const core = await getGroupCore(groupId);
+  if (!core) notFound();
 
   const summary = await getSpendingSummary(groupId);
   if (!summary) notFound();
@@ -26,8 +26,8 @@ export default async function SpendingPage({
   return (
     <div className="flex flex-1 flex-col space-y-6">
       <GroupHeader
-        group={bundle.group}
-        memberCount={bundle.activeMembers.length}
+        group={core.group}
+        memberCount={core.activeMembers.length}
         current="/spending"
       />
 
