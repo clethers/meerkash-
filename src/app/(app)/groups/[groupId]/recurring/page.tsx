@@ -10,7 +10,7 @@ import { Alert } from '@/components/ui/Alert';
 import { ButtonLink } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { SectionLabel } from '@/components/ui/SectionLabel';
-import { getGroupBundle } from '@/lib/data/groups';
+import { getGroupCore } from '@/lib/data/groups';
 import { listDueOccurrences, listTemplates } from '@/lib/actions/recurring';
 import { isDue } from '@/lib/recurring';
 import { CATEGORY_EMOJI } from '@/lib/constants';
@@ -24,8 +24,8 @@ export default async function RecurringPage({
   params: Promise<{ groupId: string }>;
 }) {
   const { groupId } = await params;
-  const bundle = await getGroupBundle(groupId);
-  if (!bundle) notFound();
+  const core = await getGroupCore(groupId);
+  if (!core) notFound();
 
   const [templates, occurrences] = await Promise.all([
     listTemplates(groupId),
@@ -39,8 +39,8 @@ export default async function RecurringPage({
   return (
     <div className="space-y-6">
       <GroupHeader
-        group={bundle.group}
-        memberCount={bundle.activeMembers.length}
+        group={core.group}
+        memberCount={core.activeMembers.length}
         current="/recurring"
       />
 
@@ -55,8 +55,8 @@ export default async function RecurringPage({
         <NewTemplateForm
           groupId={groupId}
           today={today}
-          currency={bundle.group.currency}
-          members={bundle.activeMembers.map((m) => ({
+          currency={core.group.currency}
+          members={core.activeMembers.map((m) => ({
             id: m.user_id,
             name: m.profile?.display_name ?? 'Member',
           }))}
@@ -79,7 +79,7 @@ export default async function RecurringPage({
                       <p className="text-sm text-slate-500">
                         Due {occurrence.due_on}
                         {template.amount_centavos
-                          ? ` · usually ${formatMoney(template.amount_centavos, bundle.group.currency)}`
+                          ? ` · usually ${formatMoney(template.amount_centavos, core.group.currency)}`
                           : ''}
                       </p>
                     </div>
@@ -116,7 +116,7 @@ export default async function RecurringPage({
                   <p className="truncate font-medium text-slate-900">{template.name}</p>
                   <p className="text-xs text-slate-500">
                     {template.frequency} · next {template.next_due_on}
-                    {template.amount_centavos ? ` · ${formatMoney(template.amount_centavos, bundle.group.currency)}` : ''}
+                    {template.amount_centavos ? ` · ${formatMoney(template.amount_centavos, core.group.currency)}` : ''}
                   </p>
                 </div>
                 <RemoveTemplateButton groupId={groupId} templateId={template.id} />
