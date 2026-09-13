@@ -188,7 +188,7 @@ export const getGroupCore = cache(async (groupId: string): Promise<GroupCore | n
 
 /**
  * Expenses, settlements, and the computed ledger — only for tabs that show
- * balances (Overview, Members). Rows capped like getActivity's limit.
+ * balances (Overview, Members).
  * Expenses deliberately keep deleted rows: ExpenseFilters' "show deleted"
  * toggle needs them. Settlements are filtered to non-deleted server-side —
  * nothing in the app reads a deleted settlement.
@@ -201,8 +201,6 @@ export interface GroupLedgerData {
   ledger: Ledger;
 }
 
-const MAX_LEDGER_ROWS = 500;
-
 export const getGroupLedger = cache(async (groupId: string): Promise<GroupLedgerData> => {
   const supabase = await createClient();
 
@@ -212,15 +210,13 @@ export const getGroupLedger = cache(async (groupId: string): Promise<GroupLedger
       .from('expenses')
       .select('*, participants:expense_participants(*)')
       .eq('group_id', groupId)
-      .order('created_at', { ascending: false })
-      .limit(MAX_LEDGER_ROWS),
+      .order('created_at', { ascending: false }),
     supabase
       .from('settlements')
       .select('*')
       .eq('group_id', groupId)
       .is('deleted_at', null)
-      .order('created_at', { ascending: false })
-      .limit(MAX_LEDGER_ROWS),
+      .order('created_at', { ascending: false }),
   ]);
 
   const expenses = (expenseResult.data ?? []) as unknown as ExpenseWithDetail[];
