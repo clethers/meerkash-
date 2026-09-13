@@ -18,8 +18,7 @@ export default async function SpendingPage({
   const core = await getGroupCore(groupId);
   if (!core) notFound();
 
-  const summary = await getSpendingSummary(groupId);
-  if (!summary) notFound();
+  const summary = await getSpendingSummary(groupId, core.group.currency);
 
   const hasSpending = summary.totalAllTime > 0;
 

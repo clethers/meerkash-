@@ -1,10 +1,10 @@
 import 'server-only';
-import { getCurrentUser, getGroupBundle } from '@/lib/data/groups';
+import { getCurrentUser } from '@/lib/data/groups';
 import { createClient } from '@/lib/supabase/server';
 import { convertCentavos } from '@/lib/fx';
 import { summarizeAmounts } from '@/lib/spendingSummary';
 import type { AmountSummary, CategorySpend, MonthSpend } from '@/lib/spendingSummary';
-import type { ExpenseCategory } from '@/types/db';
+import type { CurrencyCode, ExpenseCategory } from '@/types/db';
 
 export type { CategorySpend, MonthSpend };
 
@@ -13,25 +13,31 @@ export interface SpendingSummary extends AmountSummary {
 }
 
 /**
- * Reuses getGroupBundle (React-cached per request) instead of issuing a
- * second expenses query — the bundle already holds the full RLS-scoped
- * expense history that buildLedger needs anyway.
+ * Direct, narrow expenses query — only the fields this needs
+ * (amount/category/created_at), filtered to non-deleted server-side
+ * (this consumer never wants deleted rows, unlike ExpenseFilters).
+ * Takes currency from the caller (already has it from getGroupCore)
+ * instead of fetching a group/bundle just for that one field.
  */
 export async function getSpendingSummary(
   groupId: string,
+  currency: CurrencyCode,
   now = new Date(),
-): Promise<SpendingSummary | null> {
-  const bundle = await getGroupBundle(groupId);
-  if (!bundle) return null;
+): Promise<SpendingSummary> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from('expenses')
+    .select('amount_centavos, category, created_at')
+    .eq('group_id', groupId)
+    .is('deleted_at', null);
 
-  const active = bundle.expenses.filter((e) => !e.deleted_at);
-  const items = active.map((e) => ({
+  const items = (data ?? []).map((e) => ({
     amount: e.amount_centavos,
-    category: e.category,
+    category: e.category as ExpenseCategory,
     createdAt: new Date(e.created_at),
   }));
 
-  return { currency: bundle.group.currency, ...summarizeAmounts(items, now) };
+  return { currency, ...summarizeAmounts(items, now) };
 }
 
 export interface PersonalSpendingByCurrency extends AmountSummary {
