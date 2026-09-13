@@ -8,6 +8,7 @@ import type { ActionResult } from '@/lib/actions/shared';
 import { Alert } from '@/components/ui/Alert';
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
+import { Select } from '@/components/ui/Select';
 import { SubmitButton } from '@/components/ui/SubmitButton';
 import { CURRENCIES } from '@/lib/constants';
 import type { CurrencyCode } from '@/types/db';
@@ -34,6 +35,7 @@ export function ProfileForm({
     },
     null,
   );
+  const [currency, setCurrency] = useState(preferredCurrency ?? '');
 
   return (
     <form action={action} className="card space-y-4 p-5">
@@ -99,19 +101,18 @@ export function ProfileForm({
 
       <div>
         <label className="label" htmlFor="preferred_currency">Preferred currency</label>
-        <select
+        <input type="hidden" name="preferred_currency" value={currency} />
+        <Select
           id="preferred_currency"
-          name="preferred_currency"
-          defaultValue={preferredCurrency ?? ''}
-          className="input mt-1.5"
-        >
-          <option value="">No preference</option>
-          {CURRENCIES.map((c) => (
-            <option key={c.value} value={c.value}>
-              {c.label} ({c.value})
-            </option>
-          ))}
-        </select>
+          value={currency}
+          onChange={setCurrency}
+          className="mt-1.5"
+          placeholder="No preference"
+          options={[
+            { value: '', label: 'No preference' },
+            ...CURRENCIES.map((c) => ({ value: c.value, label: `${c.label} (${c.value})` })),
+          ]}
+        />
         <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
           Shows an approximate converted total on your groups page. Expenses always stay in each
           group&apos;s own currency.

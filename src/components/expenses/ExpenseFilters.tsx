@@ -5,6 +5,7 @@ import { Search, SlidersHorizontal } from 'lucide-react';
 import { CATEGORIES } from '@/lib/constants';
 import { ExpenseRow } from './ExpenseRow';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { Select } from '@/components/ui/Select';
 import type { ExpenseWithDetail } from '@/lib/data/groups';
 import type { CurrencyCode } from '@/types/db';
 
@@ -83,30 +84,36 @@ export function ExpenseFilters({
         <div className="card grid gap-3 p-4 sm:grid-cols-2">
           <div>
             <label className="label" htmlFor="f-category">Category</label>
-            <select id="f-category" value={category} onChange={(e) => setCategory(e.target.value)} className="input mt-1.5">
-              <option value="">Any category</option>
-              {CATEGORIES.map((c) => (
-                <option key={c.value} value={c.value}>{c.label}</option>
-              ))}
-            </select>
+            <Select
+              id="f-category"
+              value={category}
+              onChange={setCategory}
+              className="mt-1.5"
+              placeholder="Any category"
+              options={[{ value: '', label: 'Any category' }, ...CATEGORIES]}
+            />
           </div>
           <div>
             <label className="label" htmlFor="f-payer">Paid by</label>
-            <select id="f-payer" value={payer} onChange={(e) => setPayer(e.target.value)} className="input mt-1.5">
-              <option value="">Anyone</option>
-              {members.map((m) => (
-                <option key={m.id} value={m.id}>{m.name}</option>
-              ))}
-            </select>
+            <Select
+              id="f-payer"
+              value={payer}
+              onChange={setPayer}
+              className="mt-1.5"
+              placeholder="Anyone"
+              options={[{ value: '', label: 'Anyone' }, ...members.map((m) => ({ value: m.id, label: m.name }))]}
+            />
           </div>
           <div>
             <label className="label" htmlFor="f-member">Involves</label>
-            <select id="f-member" value={member} onChange={(e) => setMember(e.target.value)} className="input mt-1.5">
-              <option value="">Anyone</option>
-              {members.map((m) => (
-                <option key={m.id} value={m.id}>{m.name}</option>
-              ))}
-            </select>
+            <Select
+              id="f-member"
+              value={member}
+              onChange={setMember}
+              className="mt-1.5"
+              placeholder="Anyone"
+              options={[{ value: '', label: 'Anyone' }, ...members.map((m) => ({ value: m.id, label: m.name }))]}
+            />
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div>

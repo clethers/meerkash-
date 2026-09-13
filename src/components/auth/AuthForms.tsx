@@ -233,17 +233,13 @@ export function LoginForm({ next }: { next: string }) {
   );
 }
 
-/** Shared by both signup paths' step 1: name + email (with typo suggestion) + username. */
+/** Shared by both signup paths' step 1: email (with typo suggestion) + username, which doubles as the account name. */
 function NameEmailUsernameFields({
-  name,
-  onNameChange,
   email,
   onEmailChange,
   username,
   onUsernameChange,
 }: {
-  name: string;
-  onNameChange: (value: string) => void;
   email: string;
   onEmailChange: (value: string) => void;
   username: string;
@@ -253,20 +249,7 @@ function NameEmailUsernameFields({
 
   return (
     <>
-      <div>
-        <label className="label" htmlFor="name">Your name</label>
-        <input
-          id="name"
-          name="name"
-          required
-          minLength={2}
-          autoComplete="name"
-          className="input mt-1.5"
-          placeholder="Clethers"
-          value={name}
-          onChange={(event) => onNameChange(event.target.value)}
-        />
-      </div>
+      <input type="hidden" name="name" value={username} />
       <div>
         <label className="label" htmlFor="email">Email</label>
         <input
@@ -300,7 +283,6 @@ function NameEmailUsernameFields({
 
 function PasswordSignupForm({ next }: { next: string }) {
   const [state, action] = useActionState<ActionResult | null, FormData>(signUpWithEmail, null);
-  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
@@ -308,8 +290,6 @@ function PasswordSignupForm({ next }: { next: string }) {
   return (
     <form action={action} className="space-y-4">
       <NameEmailUsernameFields
-        name={name}
-        onNameChange={setName}
         email={email}
         onEmailChange={setEmail}
         username={username}
@@ -324,7 +304,6 @@ function PasswordSignupForm({ next }: { next: string }) {
 }
 
 function OtpSignupForm({ next }: { next: string }) {
-  const [name, setName] = useState('');
   const [email, setEmail] = useState<string | null>(null);
   const [pendingEmail, setPendingEmail] = useState('');
   const [username, setUsername] = useState('');
@@ -360,7 +339,7 @@ function OtpSignupForm({ next }: { next: string }) {
         verifyAction={verifyAction}
         verifyState={verifyState}
         cooldown={cooldown}
-        extraFields={{ name, username }}
+        extraFields={{ name: username, username }}
         onUseDifferentEmail={() => setEmail(null)}
       />
     );
@@ -370,8 +349,6 @@ function OtpSignupForm({ next }: { next: string }) {
     <form action={requestAction} className="space-y-4">
       <input type="hidden" name="next" value={next} />
       <NameEmailUsernameFields
-        name={name}
-        onNameChange={setName}
         email={pendingEmail}
         onEmailChange={setPendingEmail}
         username={username}

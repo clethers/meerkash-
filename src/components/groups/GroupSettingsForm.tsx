@@ -1,10 +1,11 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { updateGroup } from '@/lib/actions/groups';
 import type { ActionResult } from '@/lib/actions/shared';
 import { Alert } from '@/components/ui/Alert';
+import { Select } from '@/components/ui/Select';
 import { SubmitButton } from '@/components/ui/SubmitButton';
 import { SPLIT_MODES } from '@/lib/constants';
 import type { SplitModeDb } from '@/types/db';
@@ -31,6 +32,7 @@ export function GroupSettingsForm({
     },
     null,
   );
+  const [splitMode, setSplitMode] = useState<SplitModeDb>(defaultSplitMode);
 
   return (
     <form action={action} className="card space-y-4 p-5">
@@ -67,17 +69,15 @@ export function GroupSettingsForm({
 
       <div>
         <label className="label" htmlFor="default_split_mode">Default split mode</label>
-        <select
+        <input type="hidden" name="default_split_mode" value={splitMode} />
+        <Select
           id="default_split_mode"
-          name="default_split_mode"
-          defaultValue={defaultSplitMode}
+          value={splitMode}
+          onChange={(v) => setSplitMode(v as SplitModeDb)}
           disabled={!canEdit}
-          className="input mt-1.5"
-        >
-          {SPLIT_MODES.map((m) => (
-            <option key={m.value} value={m.value}>{m.label}</option>
-          ))}
-        </select>
+          className="mt-1.5"
+          options={SPLIT_MODES}
+        />
         <p className="mt-1 text-xs text-slate-500">
           New expenses in this group start with this split mode selected.
         </p>

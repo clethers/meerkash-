@@ -23,6 +23,8 @@ export function Select({
   options,
   placeholder = 'Select…',
   className,
+  disabled = false,
+  'aria-label': ariaLabel,
 }: {
   id?: string;
   value: string;
@@ -30,13 +32,15 @@ export function Select({
   options: SelectOption[];
   placeholder?: string;
   className?: string;
+  disabled?: boolean;
+  'aria-label'?: string;
 }) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const selected = options.find((option) => option.value === value);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open || disabled) return;
 
     function onPointerDown(event: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
@@ -53,7 +57,7 @@ export function Select({
       document.removeEventListener('mousedown', onPointerDown);
       document.removeEventListener('keydown', onKeyDown);
     };
-  }, [open]);
+  }, [open, disabled]);
 
   return (
     <div ref={containerRef} className="relative">
@@ -61,9 +65,15 @@ export function Select({
         id={id}
         type="button"
         onClick={() => setOpen((o) => !o)}
+        disabled={disabled}
         aria-haspopup="listbox"
         aria-expanded={open}
-        className={cn('input flex items-center justify-between gap-2 text-left', className)}
+        aria-label={ariaLabel}
+        className={cn(
+          'input flex items-center justify-between gap-2 text-left',
+          disabled && 'cursor-not-allowed opacity-50',
+          className,
+        )}
       >
         <span className="flex min-w-0 items-center gap-2">
           {selected?.icon}
@@ -77,7 +87,7 @@ export function Select({
         />
       </button>
 
-      {open ? (
+      {open && !disabled ? (
         <ul role="listbox" className="card absolute z-10 mt-1.5 max-h-60 w-full overflow-y-auto p-1">
           {options.map((option) => (
             <li key={option.value}>

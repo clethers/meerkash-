@@ -12,6 +12,7 @@ import { currencySymbol, formatMoney, toCentavos, toPesoInput } from '@/lib/mone
 import { CATEGORIES } from '@/lib/constants';
 import { Alert } from '@/components/ui/Alert';
 import { Avatar } from '@/components/ui/Avatar';
+import { Select } from '@/components/ui/Select';
 import { SubmitButton } from '@/components/ui/SubmitButton';
 import type { CurrencyCode, ExpenseCategory, SplitModeDb } from '@/types/db';
 
@@ -68,6 +69,7 @@ export function ExpenseForm({
       : initial.shareCounts,
   );
   const [description, setDescription] = useState(initial.description);
+  const [category, setCategory] = useState<ExpenseCategory>(initial.category);
   const [scanning, startScan] = useTransition();
   const [scanError, setScanError] = useState<string | null>(null);
   const [scannedItems, setScannedItems] = useState<ReceiptLineItem[]>([]);
@@ -250,27 +252,31 @@ export function ExpenseForm({
           </div>
           <div>
             <label className="label" htmlFor="payer_id">Who paid?</label>
-            <select
+            <input type="hidden" name="payer_id" value={payerId} />
+            <Select
               id="payer_id"
-              name="payer_id"
               value={payerId}
-              onChange={(e) => setPayerId(e.target.value)}
-              className="input mt-1.5"
-            >
-              {members.map((m) => (
-                <option key={m.id} value={m.id}>{m.name}</option>
-              ))}
-            </select>
+              onChange={setPayerId}
+              className="mt-1.5"
+              options={members.map((m) => ({
+                value: m.id,
+                label: m.name,
+                icon: <Avatar name={m.name} src={m.avatarUrl} size={20} />,
+              }))}
+            />
           </div>
         </div>
 
         <div>
           <label className="label" htmlFor="category">Category</label>
-          <select id="category" name="category" defaultValue={initial.category} className="input mt-1.5">
-            {CATEGORIES.map((c) => (
-              <option key={c.value} value={c.value}>{c.emoji} {c.label}</option>
-            ))}
-          </select>
+          <input type="hidden" name="category" value={category} />
+          <Select
+            id="category"
+            value={category}
+            onChange={(v) => setCategory(v as ExpenseCategory)}
+            className="mt-1.5"
+            options={CATEGORIES.map((c) => ({ value: c.value, label: `${c.emoji} ${c.label}` }))}
+          />
         </div>
       </div>
 

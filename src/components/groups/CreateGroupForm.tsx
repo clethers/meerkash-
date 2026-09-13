@@ -9,11 +9,13 @@ import type { ActionResult } from '@/lib/actions/shared';
 import { CURRENCIES } from '@/lib/constants';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
+import { Select } from '@/components/ui/Select';
 import { SubmitButton } from '@/components/ui/SubmitButton';
 
 export function CreateGroupForm() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [currency, setCurrency] = useState('PHP');
   const [state, action] = useActionState<ActionResult | null, FormData>(createGroup, null);
 
   useEffect(() => {
@@ -66,11 +68,14 @@ export function CreateGroupForm() {
           </div>
           <div>
             <label className="label" htmlFor="group-currency">Currency</label>
-            <select id="group-currency" name="currency" className="input mt-1.5" defaultValue="PHP">
-              {CURRENCIES.map((c) => (
-                <option key={c.value} value={c.value}>{c.value} — {c.label}</option>
-              ))}
-            </select>
+            <input type="hidden" name="currency" value={currency} />
+            <Select
+              id="group-currency"
+              value={currency}
+              onChange={setCurrency}
+              className="mt-1.5"
+              options={CURRENCIES.map((c) => ({ value: c.value, label: `${c.value} — ${c.label}` }))}
+            />
             <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Fixed once the group is created.</p>
           </div>
           {state?.error ? <Alert tone="error">{state.error}</Alert> : null}

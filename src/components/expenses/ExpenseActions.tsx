@@ -7,6 +7,7 @@ import { addComment, addMemberToExpense, deleteExpense } from '@/lib/actions/exp
 import type { ActionResult } from '@/lib/actions/shared';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
+import { Select } from '@/components/ui/Select';
 import { SubmitButton } from '@/components/ui/SubmitButton';
 
 export function DeleteExpenseButton({
@@ -122,16 +123,13 @@ export function AddParticipant({
         change is recorded and the people affected are notified.
       </p>
       <div className="flex flex-wrap gap-2">
-        <select
+        <Select
           value={selected}
-          onChange={(e) => setSelected(e.target.value)}
-          className="input max-w-56"
+          onChange={setSelected}
+          className="max-w-56"
           aria-label="Member to add"
-        >
-          {candidates.map((c) => (
-            <option key={c.id} value={c.id}>{c.name}</option>
-          ))}
-        </select>
+          options={candidates.map((c) => ({ value: c.id, label: c.name }))}
+        />
         <Button
           size="sm"
           disabled={pending || !selected}

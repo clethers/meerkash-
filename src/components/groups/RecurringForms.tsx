@@ -9,8 +9,9 @@ import { CATEGORIES, RECURRENCES } from '@/lib/constants';
 import { currencySymbol } from '@/lib/money';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
+import { Select } from '@/components/ui/Select';
 import { SubmitButton } from '@/components/ui/SubmitButton';
-import type { CurrencyCode } from '@/types/db';
+import type { CurrencyCode, ExpenseCategory, Recurrence } from '@/types/db';
 
 export function NewTemplateForm({
   groupId,
@@ -33,6 +34,9 @@ export function NewTemplateForm({
     },
     null,
   );
+  const [frequency, setFrequency] = useState<Recurrence>('monthly');
+  const [category, setCategory] = useState<ExpenseCategory>('other');
+  const [payerId, setPayerId] = useState('');
 
   if (!open) {
     return (
@@ -54,11 +58,14 @@ export function NewTemplateForm({
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label className="label" htmlFor="r-frequency">How often?</label>
-          <select id="r-frequency" name="frequency" className="input mt-1.5" defaultValue="monthly">
-            {RECURRENCES.map((r) => (
-              <option key={r.value} value={r.value}>{r.label}</option>
-            ))}
-          </select>
+          <input type="hidden" name="frequency" value={frequency} />
+          <Select
+            id="r-frequency"
+            value={frequency}
+            onChange={(v) => setFrequency(v as Recurrence)}
+            className="mt-1.5"
+            options={RECURRENCES}
+          />
         </div>
         <div>
           <label className="label" htmlFor="r-due">First due date</label>
@@ -70,22 +77,28 @@ export function NewTemplateForm({
         </div>
         <div>
           <label className="label" htmlFor="r-category">Category</label>
-          <select id="r-category" name="category" className="input mt-1.5" defaultValue="other">
-            {CATEGORIES.map((c) => (
-              <option key={c.value} value={c.value}>{c.emoji} {c.label}</option>
-            ))}
-          </select>
+          <input type="hidden" name="category" value={category} />
+          <Select
+            id="r-category"
+            value={category}
+            onChange={(v) => setCategory(v as ExpenseCategory)}
+            className="mt-1.5"
+            options={CATEGORIES.map((c) => ({ value: c.value, label: `${c.emoji} ${c.label}` }))}
+          />
         </div>
       </div>
 
       <div>
         <label className="label" htmlFor="r-payer">Usually paid by</label>
-        <select id="r-payer" name="default_payer_id" className="input mt-1.5">
-          <option value="">Not set</option>
-          {members.map((m) => (
-            <option key={m.id} value={m.id}>{m.name}</option>
-          ))}
-        </select>
+        <input type="hidden" name="default_payer_id" value={payerId} />
+        <Select
+          id="r-payer"
+          value={payerId}
+          onChange={setPayerId}
+          className="mt-1.5"
+          placeholder="Not set"
+          options={[{ value: '', label: 'Not set' }, ...members.map((m) => ({ value: m.id, label: m.name }))]}
+        />
       </div>
 
       <fieldset>
