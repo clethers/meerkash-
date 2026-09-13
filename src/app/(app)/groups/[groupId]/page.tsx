@@ -7,7 +7,7 @@ import { InviteFriendsModal } from '@/components/groups/InviteFriendsModal';
 import { ExpenseFilters } from '@/components/expenses/ExpenseFilters';
 import { ButtonLink } from '@/components/ui/Button';
 import { SectionLabel } from '@/components/ui/SectionLabel';
-import { getGroupBundle } from '@/lib/data/groups';
+import { getGroupCore, getGroupLedger } from '@/lib/data/groups';
 import { getMyFriends } from '@/lib/data/friends';
 import { getOrCreateInvite, inviteQrSvg, inviteUrl } from '@/lib/data/invites';
 import { summarizeForUser } from '@/lib/balance';
@@ -25,12 +25,12 @@ export default async function GroupPage({
 }) {
   const { groupId } = await params;
   const { welcome } = await searchParams;
-  const bundle = await getGroupBundle(groupId);
-  if (!bundle) notFound();
+  const [core, ledgerData] = await Promise.all([getGroupCore(groupId), getGroupLedger(groupId)]);
+  if (!core) notFound();
 
-  let welcomeInvite: { url: string; qrSvg: string; inviteId: string; friends: typeof bundle.members[number]['profile'][] } | null = null;
+  let welcomeInvite: { url: string; qrSvg: string; inviteId: string; friends: typeof core.members[number]['profile'][] } | null = null;
   if (welcome === '1') {
-    const memberIds = new Set(bundle.activeMembers.map((m) => m.user_id));
+    const memberIds = new Set(core.activeMembers.map((m) => m.user_id));
     const [friends, invite] = await Promise.all([getMyFriends(), getOrCreateInvite(groupId)]);
     if (invite) {
       welcomeInvite = {
@@ -42,28 +42,28 @@ export default async function GroupPage({
     }
   }
 
-  const summary = summarizeForUser(bundle.ledger, bundle.me.id);
+  const summary = summarizeForUser(ledgerData.ledger, core.me.id);
   const avatarOf = (id: string) =>
-    bundle.members.find((m) => m.user_id === id)?.profile?.avatar_url ?? null;
+    core.members.find((m) => m.user_id === id)?.profile?.avatar_url ?? null;
 
-  const pendingForMe = bundle.settlements.filter(
-    (s) => s.status === 'pending' && s.to_user_id === bundle.me.id && !s.deleted_at,
+  const pendingForMe = ledgerData.settlements.filter(
+    (s) => s.status === 'pending' && s.to_user_id === core.me.id,
   );
-  const recentSettlements = bundle.settlements.filter((s) => !s.deleted_at).slice(0, 4);
+  const recentSettlements = ledgerData.settlements.slice(0, 4);
 
   return (
     <div className="space-y-6">
       {welcomeInvite ? (
         <InviteFriendsModal
           groupId={groupId}
-          groupName={bundle.group.name}
+          groupName={core.group.name}
           friends={welcomeInvite.friends}
           inviteUrl={welcomeInvite.url}
           qrSvg={welcomeInvite.qrSvg}
           inviteId={welcomeInvite.inviteId}
         />
       ) : null}
-      <GroupHeader group={bundle.group} memberCount={bundle.activeMembers.length} />
+      <GroupHeader group={core.group} memberCount={core.activeMembers.length} />
 
       {pendingForMe.length > 0 ? (
         <Link
@@ -73,7 +73,7 @@ export default async function GroupPage({
           <Wallet size={18} className="text-amber-700 dark:text-amber-400" />
           <span className="flex-1 text-sm text-amber-900 dark:text-amber-200">
             {pendingForMe.length === 1
-              ? `${bundle.nameOf(pendingForMe[0].from_user_id)} says they paid you ${formatMoney(pendingForMe[0].amount_centavos, bundle.group.currency)}.`
+              ? `${core.nameOf(pendingForMe[0].from_user_id)} says they paid you ${formatMoney(pendingForMe[0].amount_centavos, core.group.currency)}.`
               : `${pendingForMe.length} payments are waiting for you to confirm.`}
           </span>
           <ArrowRight size={16} className="text-amber-700 dark:text-amber-400" />
@@ -83,20 +83,20 @@ export default async function GroupPage({
       <BalanceSummary
         summary={summary}
         groupId={groupId}
-        nameOf={bundle.nameOf}
+        nameOf={core.nameOf}
         avatarOf={avatarOf}
-        currency={bundle.group.currency}
+        currency={core.group.currency}
       />
 
       <div className="grid gap-3 sm:grid-cols-3">
-        <Stat label="Total group spending" value={formatMoney(bundle.ledger.totalSpent, bundle.group.currency)} />
+        <Stat label="Total group spending" value={formatMoney(ledgerData.ledger.totalSpent, core.group.currency)} />
         <Stat
           label="Expenses recorded"
-          value={String(bundle.expenses.filter((e) => !e.deleted_at).length)}
+          value={String(ledgerData.expenses.filter((e) => !e.deleted_at).length)}
         />
         <Stat
           label="Payments settled"
-          value={String(bundle.settlements.filter((s) => s.status === 'confirmed').length)}
+          value={String(ledgerData.settlements.filter((s) => s.status === 'confirmed').length)}
         />
       </div>
 
@@ -112,14 +112,14 @@ export default async function GroupPage({
       <section className="space-y-3">
         <SectionLabel>Expenses</SectionLabel>
         <ExpenseFilters
-          expenses={bundle.expenses}
+          expenses={ledgerData.expenses}
           groupId={groupId}
-          viewerId={bundle.me.id}
-          members={bundle.members.map((m) => ({
+          viewerId={core.me.id}
+          members={core.members.map((m) => ({
             id: m.user_id,
             name: m.profile?.display_name ?? 'Member',
           }))}
-          currency={bundle.group.currency}
+          currency={core.group.currency}
         />
       </section>
 
@@ -131,13 +131,13 @@ export default async function GroupPage({
               <li key={s.id} className="flex items-center gap-3 px-4 py-3 text-sm">
                 <span className="flex-1 text-slate-700 dark:text-slate-300">
                   <strong className="font-medium text-slate-900 dark:text-slate-50">
-                    {s.from_user_id === bundle.me.id ? 'You' : bundle.nameOf(s.from_user_id)}
+                    {s.from_user_id === core.me.id ? 'You' : core.nameOf(s.from_user_id)}
                   </strong>{' '}
                   paid{' '}
                   <strong className="font-medium text-slate-900 dark:text-slate-50">
-                    {s.to_user_id === bundle.me.id ? 'you' : bundle.nameOf(s.to_user_id)}
+                    {s.to_user_id === core.me.id ? 'you' : core.nameOf(s.to_user_id)}
                   </strong>{' '}
-                  {formatMoney(s.amount_centavos, bundle.group.currency)}
+                  {formatMoney(s.amount_centavos, core.group.currency)}
                 </span>
                 <StatusPill status={s.status} />
                 <span className="hidden shrink-0 text-xs text-slate-400 dark:text-slate-500 sm:inline">
