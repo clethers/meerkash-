@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { ArrowRight, Plus, Wallet } from 'lucide-react';
 import { GroupHeader } from '@/components/groups/GroupHeader';
@@ -7,7 +8,8 @@ import { InviteFriendsModal } from '@/components/groups/InviteFriendsModal';
 import { ExpenseFilters } from '@/components/expenses/ExpenseFilters';
 import { ButtonLink } from '@/components/ui/Button';
 import { SectionLabel } from '@/components/ui/SectionLabel';
-import { getGroupCore, getGroupLedger } from '@/lib/data/groups';
+import { Skeleton, SkeletonRows } from '@/components/ui/Skeleton';
+import { getGroupCore, getGroupLedger, type GroupCore } from '@/lib/data/groups';
 import { getMyFriends } from '@/lib/data/friends';
 import { getOrCreateInvite, inviteQrSvg, inviteUrl } from '@/lib/data/invites';
 import { summarizeForUser } from '@/lib/balance';
@@ -25,7 +27,7 @@ export default async function GroupPage({
 }) {
   const { groupId } = await params;
   const { welcome } = await searchParams;
-  const [core, ledgerData] = await Promise.all([getGroupCore(groupId), getGroupLedger(groupId)]);
+  const core = await getGroupCore(groupId);
   if (!core) notFound();
 
   let welcomeInvite: { url: string; qrSvg: string; inviteId: string; friends: typeof core.members[number]['profile'][] } | null = null;
@@ -42,15 +44,6 @@ export default async function GroupPage({
     }
   }
 
-  const summary = summarizeForUser(ledgerData.ledger, core.me.id);
-  const avatarOf = (id: string) =>
-    core.members.find((m) => m.user_id === id)?.profile?.avatar_url ?? null;
-
-  const pendingForMe = ledgerData.settlements.filter(
-    (s) => s.status === 'pending' && s.to_user_id === core.me.id,
-  );
-  const recentSettlements = ledgerData.settlements.slice(0, 4);
-
   return (
     <div className="space-y-6">
       {welcomeInvite ? (
@@ -65,6 +58,30 @@ export default async function GroupPage({
       ) : null}
       <GroupHeader group={core.group} memberCount={core.activeMembers.length} />
 
+      {/* Header renders immediately above; everything below needs the
+          balance-heavy ledger fetch, so it streams in on its own once
+          getGroupLedger resolves instead of blocking the whole page. */}
+      <Suspense fallback={<OverviewContentSkeleton />}>
+        <OverviewGroupContent groupId={groupId} core={core} />
+      </Suspense>
+    </div>
+  );
+}
+
+async function OverviewGroupContent({ groupId, core }: { groupId: string; core: GroupCore }) {
+  const ledgerData = await getGroupLedger(groupId);
+
+  const summary = summarizeForUser(ledgerData.ledger, core.me.id);
+  const avatarOf = (id: string) =>
+    core.members.find((m) => m.user_id === id)?.profile?.avatar_url ?? null;
+
+  const pendingForMe = ledgerData.settlements.filter(
+    (s) => s.status === 'pending' && s.to_user_id === core.me.id,
+  );
+  const recentSettlements = ledgerData.settlements.slice(0, 4);
+
+  return (
+    <>
       {pendingForMe.length > 0 ? (
         <Link
           href={`/groups/${groupId}/settle`}
@@ -148,7 +165,28 @@ export default async function GroupPage({
           </ul>
         </section>
       ) : null}
-    </div>
+    </>
+  );
+}
+
+function OverviewContentSkeleton() {
+  return (
+    <>
+      <Skeleton className="h-24 w-full rounded-2xl" />
+      <div className="grid gap-3 sm:grid-cols-3">
+        <Skeleton className="h-20 rounded-xl" />
+        <Skeleton className="h-20 rounded-xl" />
+        <Skeleton className="h-20 rounded-xl" />
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <Skeleton className="h-10 w-36 rounded-xl" />
+        <Skeleton className="h-10 w-32 rounded-xl" />
+      </div>
+      <div className="space-y-3">
+        <Skeleton className="h-4 w-24" />
+        <SkeletonRows count={4} />
+      </div>
+    </>
   );
 }
 

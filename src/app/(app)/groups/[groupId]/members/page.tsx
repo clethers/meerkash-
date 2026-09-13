@@ -1,10 +1,12 @@
+import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { GroupHeader } from '@/components/groups/GroupHeader';
 import { InvitePanel } from '@/components/groups/InvitePanel';
 import { LeaveGroupButton, OwnerMemberActions } from '@/components/groups/MemberActions';
 import { Avatar } from '@/components/ui/Avatar';
 import { SectionLabel } from '@/components/ui/SectionLabel';
-import { getGroupCore, getGroupLedger } from '@/lib/data/groups';
+import { SkeletonRows } from '@/components/ui/Skeleton';
+import { getGroupCore, getGroupLedger, type GroupCore } from '@/lib/data/groups';
 import { getOrCreateInvite, inviteQrSvg, inviteUrl } from '@/lib/data/invites';
 import { canLeaveGroup, netFor } from '@/lib/balance';
 import { formatMoney } from '@/lib/money';
@@ -17,14 +19,11 @@ export default async function MembersPage({
   params: Promise<{ groupId: string }>;
 }) {
   const { groupId } = await params;
-  const [core, ledgerData] = await Promise.all([getGroupCore(groupId), getGroupLedger(groupId)]);
+  const core = await getGroupCore(groupId);
   if (!core) notFound();
 
   const invite = await getOrCreateInvite(groupId);
   const qrSvg = invite ? await inviteQrSvg(invite.token) : '';
-  const isOwner = core.myRole === 'owner';
-  const leaveCheck = canLeaveGroup(ledgerData.ledger, core.me.id);
-  const former = core.members.filter((m) => m.status !== 'active');
 
   return (
     <div className="space-y-6">
@@ -43,6 +42,24 @@ export default async function MembersPage({
         />
       ) : null}
 
+      {/* Header/invite panel render immediately above; the member list
+          needs the balance-heavy ledger fetch, so it streams in on its
+          own once getGroupLedger resolves instead of blocking the page. */}
+      <Suspense fallback={<SkeletonRows count={core.activeMembers.length || 3} />}>
+        <MembersListSection groupId={groupId} core={core} />
+      </Suspense>
+    </div>
+  );
+}
+
+async function MembersListSection({ groupId, core }: { groupId: string; core: GroupCore }) {
+  const ledgerData = await getGroupLedger(groupId);
+  const isOwner = core.myRole === 'owner';
+  const leaveCheck = canLeaveGroup(ledgerData.ledger, core.me.id);
+  const former = core.members.filter((m) => m.status !== 'active');
+
+  return (
+    <>
       <section className="space-y-3">
         <SectionLabel>Members ({core.activeMembers.length})</SectionLabel>
         <ul className="card divide-y divide-slate-100 overflow-hidden">
@@ -127,6 +144,6 @@ export default async function MembersPage({
           </p>
         ) : null}
       </section>
-    </div>
+    </>
   );
 }
