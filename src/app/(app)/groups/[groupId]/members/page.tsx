@@ -4,7 +4,7 @@ import { InvitePanel } from '@/components/groups/InvitePanel';
 import { LeaveGroupButton, OwnerMemberActions } from '@/components/groups/MemberActions';
 import { Avatar } from '@/components/ui/Avatar';
 import { SectionLabel } from '@/components/ui/SectionLabel';
-import { getGroupBundle } from '@/lib/data/groups';
+import { getGroupCore, getGroupLedger } from '@/lib/data/groups';
 import { getOrCreateInvite, inviteQrSvg, inviteUrl } from '@/lib/data/invites';
 import { canLeaveGroup, netFor } from '@/lib/balance';
 import { formatMoney } from '@/lib/money';
@@ -17,20 +17,20 @@ export default async function MembersPage({
   params: Promise<{ groupId: string }>;
 }) {
   const { groupId } = await params;
-  const bundle = await getGroupBundle(groupId);
-  if (!bundle) notFound();
+  const [core, ledgerData] = await Promise.all([getGroupCore(groupId), getGroupLedger(groupId)]);
+  if (!core) notFound();
 
   const invite = await getOrCreateInvite(groupId);
   const qrSvg = invite ? await inviteQrSvg(invite.token) : '';
-  const isOwner = bundle.myRole === 'owner';
-  const leaveCheck = canLeaveGroup(bundle.ledger, bundle.me.id);
-  const former = bundle.members.filter((m) => m.status !== 'active');
+  const isOwner = core.myRole === 'owner';
+  const leaveCheck = canLeaveGroup(ledgerData.ledger, core.me.id);
+  const former = core.members.filter((m) => m.status !== 'active');
 
   return (
     <div className="space-y-6">
       <GroupHeader
-        group={bundle.group}
-        memberCount={bundle.activeMembers.length}
+        group={core.group}
+        memberCount={core.activeMembers.length}
         current="/members"
       />
 
@@ -44,11 +44,11 @@ export default async function MembersPage({
       ) : null}
 
       <section className="space-y-3">
-        <SectionLabel>Members ({bundle.activeMembers.length})</SectionLabel>
+        <SectionLabel>Members ({core.activeMembers.length})</SectionLabel>
         <ul className="card divide-y divide-slate-100 overflow-hidden">
-          {bundle.activeMembers.map((member) => {
-            const net = netFor(bundle.ledger.net, member.user_id);
-            const isMe = member.user_id === bundle.me.id;
+          {core.activeMembers.map((member) => {
+            const net = netFor(ledgerData.ledger.net, member.user_id);
+            const isMe = member.user_id === core.me.id;
             return (
               <li key={member.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
                 <Avatar
@@ -70,8 +70,8 @@ export default async function MembersPage({
                     {net === 0
                       ? 'settled up'
                       : net > 0
-                        ? `is owed ${formatMoney(net, bundle.group.currency)}`
-                        : `owes ${formatMoney(Math.abs(net), bundle.group.currency)}`}
+                        ? `is owed ${formatMoney(net, core.group.currency)}`
+                        : `owes ${formatMoney(Math.abs(net), core.group.currency)}`}
                   </p>
                 </div>
 
@@ -121,7 +121,7 @@ export default async function MembersPage({
           groupId={groupId}
           blockedReason={leaveCheck.allowed ? null : (leaveCheck.reason ?? null)}
         />
-        {isOwner && bundle.activeMembers.length > 1 ? (
+        {isOwner && core.activeMembers.length > 1 ? (
           <p className="text-xs text-slate-500">
             As the owner, transfer ownership to someone else before you leave.
           </p>
