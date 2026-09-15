@@ -56,18 +56,7 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
 Never put the `service_role` key in this file — the app doesn't need it, and
 anything in `NEXT_PUBLIC_*` ships to the browser.
 
-### 5. Turn on Google sign-in (optional)
-
-**Authentication → Providers → Google**, paste a Google OAuth client ID and
-secret, and add this to the Google console's authorised redirect URIs:
-
-```
-https://<your-project-ref>.supabase.co/auth/v1/callback
-```
-
-Email/password sign-in works without this.
-
-### 6. Run it
+### 5. Run it
 
 ```bash
 npm run dev

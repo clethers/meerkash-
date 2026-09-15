@@ -42,7 +42,7 @@ export function SetupNotice() {
       </ol>
 
       <p className="mt-8 text-sm text-slate-500">
-        The full walkthrough, including Google sign-in, is in <Code>README.md</Code>.
+        The full walkthrough is in <Code>README.md</Code>.
       </p>
     </main>
   );

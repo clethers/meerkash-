@@ -2,7 +2,7 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { SUPABASE_ANON_KEY, SUPABASE_URL, supabaseConfigured } from '@/lib/env';
 
-const PUBLIC_PATHS = ['/', '/login', '/signup', '/auth', '/join'];
+const PUBLIC_PATHS = ['/', '/login', '/signup', '/forgot-password', '/auth', '/join'];
 
 export async function updateSession(request: NextRequest) {
   // No credentials yet: let every page through so the setup screen can render.

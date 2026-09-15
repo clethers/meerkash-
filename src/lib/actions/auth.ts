@@ -17,9 +17,9 @@ const USERNAME_PATTERN = /^[a-z0-9_]{3,20}$/;
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 
 /**
- * Shared by both signup paths (password and OTP): format-check, then a
- * fresh server-side availability check (defense against a stale client-side
- * check — the RPC is also what the client polls while the user types).
+ * Format-check, then a fresh server-side availability check (defense
+ * against a stale client-side check — the RPC is also what the client
+ * polls while the user types).
  */
 async function validateSignupUsername(
   supabase: SupabaseServerClient,
@@ -69,43 +69,6 @@ export async function signUpWithEmail(_prev: ActionResult | null, formData: Form
   return ok({ message: 'Check your inbox to confirm your email, then sign in.' });
 }
 
-/**
- * OTP-based signup, step 1: collect name/email/username (no password), send
- * a 6-digit code. Checks email_has_account() first — without it, signing up
- * with an email that already has a confirmed account would silently log
- * that person in instead, discarding the name/username they just typed with
- * no explanation. Verification reuses `verifyEmailOtp` below.
- */
-export async function requestSignupOtp(_prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
-  const name = String(formData.get('name') ?? '').trim();
-  const email = String(formData.get('email') ?? '').trim();
-  const username = String(formData.get('username') ?? '').trim().toLowerCase();
-  const next = String(formData.get('next') ?? '/groups');
-
-  if (name.length < 2) return fail('Please enter your name.');
-  if (!email.includes('@')) return fail('Please enter a valid email address.');
-
-  const supabase = await createClient();
-
-  const { data: alreadyRegistered, error: lookupError } = await supabase.rpc('email_has_account', { check_email: email });
-  if (lookupError) return fail(readableError(lookupError, 'Could not verify that email. Please try again.'));
-  if (alreadyRegistered) return fail('An account with that email already exists. Try signing in instead.');
-
-  const usernameCheck = await validateSignupUsername(supabase, username);
-  if (usernameCheck.error) return fail(usernameCheck.error);
-
-  const { error } = await supabase.auth.signInWithOtp({
-    email,
-    options: {
-      shouldCreateUser: true,
-      data: { full_name: name, username },
-    },
-  });
-
-  if (error) return fail(readableError(error, 'We could not send a code. Please try again.'));
-  return ok({ email, next });
-}
-
 export async function signInWithEmail(_prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
   const email = String(formData.get('email') ?? '').trim();
   const password = String(formData.get('password') ?? '');
@@ -121,60 +84,36 @@ export async function signInWithEmail(_prev: ActionResult | null, formData: Form
   return ok(undefined, next.startsWith('/') ? next : '/groups');
 }
 
-export async function requestEmailOtp(_prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
+/**
+ * Always returns a generic success message, whether or not the email has an
+ * account — otherwise this endpoint could be used to test which emails are
+ * registered.
+ */
+export async function requestPasswordReset(_prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
   const email = String(formData.get('email') ?? '').trim();
-  const next = String(formData.get('next') ?? '/groups');
-
   if (!email.includes('@')) return fail('Please enter a valid email address.');
 
   const supabase = await createClient();
-
-  const { data: registered, error: lookupError } = await supabase.rpc('email_has_account', { check_email: email });
-  if (lookupError) return fail(readableError(lookupError, 'Could not verify that email. Please try again.'));
-  if (!registered) return fail('No account found for that email. Create an account instead?');
-
-  const { error } = await supabase.auth.signInWithOtp({
-    email,
-    options: { shouldCreateUser: false },
+  await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${siteOrigin()}/auth/callback?next=${encodeURIComponent('/reset-password')}`,
   });
 
-  if (error) return fail(readableError(error, 'We could not send a code. Please try again.'));
-  return ok({ email, next });
+  return ok({ message: 'If an account exists for that email, we sent a link to reset your password.' });
 }
 
-export async function verifyEmailOtp(_prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
-  const email = String(formData.get('email') ?? '').trim();
-  const token = String(formData.get('token') ?? '').trim();
-  const next = String(formData.get('next') ?? '/groups');
-
-  if (!email.includes('@')) return fail('Please enter a valid email address.');
-  if (!/^\d{6}$/.test(token)) return fail('Enter the 6-digit code from your email.');
+export async function updatePassword(_prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
+  const password = String(formData.get('password') ?? '');
+  if (password.length < 8) return fail('Password must be at least 8 characters.');
 
   const supabase = await createClient();
-  const { data, error } = await supabase.auth.verifyOtp({ email, token, type: 'email' });
-  console.log('[DEBUG verifyEmailOtp] error:', error, 'session:', !!data?.session, 'user:', data?.user?.id);
-  if (error) return fail(readableError(error, 'That code is invalid or has expired.'));
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return fail('Your reset link has expired. Please request a new one.');
 
-  const { data: check } = await supabase.auth.getUser();
-  console.log('[DEBUG verifyEmailOtp] getUser after verify:', check?.user?.id);
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) return fail(readableError(error, 'We could not update your password.'));
 
   revalidatePath('/', 'layout');
-  return ok(undefined, next.startsWith('/') ? next : '/groups');
-}
-
-export async function signInWithGoogle(formData: FormData): Promise<void> {
-  const next = String(formData.get('next') ?? '/groups');
-  const supabase = await createClient();
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: `${siteOrigin()}/auth/callback?next=${encodeURIComponent(next)}`,
-      queryParams: { access_type: 'offline', prompt: 'consent' },
-    },
-  });
-
-  if (error || !data?.url) redirect('/login?error=google');
-  redirect(data.url);
+  return ok(undefined, '/groups');
 }
 
 export async function signOut(): Promise<void> {
