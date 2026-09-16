@@ -43,6 +43,7 @@ export async function signUpWithEmail(_prev: ActionResult | null, formData: Form
   const email = String(formData.get('email') ?? '').trim();
   const password = String(formData.get('password') ?? '');
   const username = String(formData.get('username') ?? '').trim().toLowerCase();
+  const next = String(formData.get('next') ?? '/groups');
 
   if (name.length < 2) return fail('Please enter your name.');
   if (!email.includes('@')) return fail('Please enter a valid email address.');
@@ -53,7 +54,7 @@ export async function signUpWithEmail(_prev: ActionResult | null, formData: Form
   const usernameCheck = await validateSignupUsername(supabase, username);
   if (usernameCheck.error) return fail(usernameCheck.error);
 
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -65,6 +66,14 @@ export async function signUpWithEmail(_prev: ActionResult | null, formData: Form
   if (error) {
     if (/username/i.test(error.message)) return fail('That username was just taken — try another.');
     return fail(readableError(error, 'We could not create your account.'));
+  }
+
+  // With email confirmation turned off in Supabase, signUp already returns
+  // an active session — sign the user straight in instead of telling them
+  // to check an inbox for a mail that was never required.
+  if (data.session) {
+    revalidatePath('/', 'layout');
+    return ok(undefined, next.startsWith('/') ? next : '/groups');
   }
   return ok({ message: 'Check your inbox to confirm your email, then sign in.' });
 }

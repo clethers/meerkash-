@@ -63,6 +63,12 @@ export function SignupForm({ next }: { next: string }) {
   const [username, setUsername] = useState('');
   const emailSuggestion = suggestEmailCorrection(email);
 
+  useEffect(() => {
+    if (state?.ok && state.redirectTo) {
+      window.location.href = state.redirectTo;
+    }
+  }, [state]);
+
   return (
     <div className="space-y-4">
       <form action={action} className="space-y-4">
@@ -97,7 +103,9 @@ export function SignupForm({ next }: { next: string }) {
         <UsernameField value={username} onChange={setUsername} />
         <PasswordField value={password} onChange={setPassword} />
         {state?.error ? <Alert tone="error">{state.error}</Alert> : null}
-        {state?.ok ? <Alert tone="success">{String(state.data?.message ?? 'Account created.')}</Alert> : null}
+        {state?.ok && !state.redirectTo ? (
+          <Alert tone="success">{String(state.data?.message ?? 'Account created.')}</Alert>
+        ) : null}
         <SubmitButton className="w-full" pendingLabel="Creating account…">Create account</SubmitButton>
       </form>
       <p className="text-center text-sm text-slate-600 dark:text-slate-300">
